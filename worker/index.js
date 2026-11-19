@@ -154,6 +154,41 @@ function deliveryConfigured(env, type) {
     : Boolean(env.TWILIO_ACCOUNT_SID && env.TWILIO_AUTH_TOKEN && env.TWILIO_FROM);
 }
 
+function allowedOrigins(env) {
+  return String(env.APP_ORIGIN || "").split(",").map((value) => value.trim()).filter(Boolean).map((value) => {
+    if (value === "*") return value;
+    try {
+      return new URL(value).origin;
+    } catch {
+      return value.replace(/\/+$/, "");
+    }
+  });
+}
+
+function logFailure(label, error) {
+  const message = String(error && error.message || "");
+  let kind = error && error.name || "Error";
+  if (message.includes("D1_BINDING_MISSING")) kind = "D1_BINDING_MISSING";
+  else if (message.includes("D1_INSERT_DID_NOT_RETURN_ROW_ID")) kind = "D1_INSERT_RESULT_INVALID";
+  else if (/no such table|no such column|no such database/i.test(message)) kind = "D1_SCHEMA_MISSING";
+  else if (/D1|database|SQLITE/i.test(message)) kind = "D1_QUERY_FAILED";
+  console.error(label, kind);
+}
+
+async function health(env) {
+  if (!env.DB || typeof env.DB.prepare !== "function") {
+    return json({ ok: false, database: "binding-missing" }, 503);
+  }
+  try {
+    await env.DB.prepare("SELECT id FROM users LIMIT 0").all();
+    await env.DB.prepare("SELECT user_id FROM verification_codes LIMIT 0").all();
+    return json({ ok: true, database: "ready" });
+  } catch (error) {
+    logFailure("Health check failed", error);
+    return json({ ok: false, database: "unavailable-or-schema-missing" }, 503);
+  }
+}
+
 async function deliverCode(env, recipient, type, code, purpose) {
   const subject = purpose === "reset" ? "Parola sıfırlama kodun" : "Ders Çalışma doğrulama kodun";
   const text = `${subject}: ${code}. Kod 10 dakika geçerlidir.`;
@@ -272,27 +307,34 @@ async function register(request, env) {
   }
 
   const password = await passwordHash(body.password);
-  let inserted;
+  let insertedId;
   try {
-    inserted = await env.DB.prepare(
+    const inserted = await env.DB.prepare(
       `INSERT INTO users (name, email, phone, password_hash, role, created_at)
-       VALUES (?, ?, ?, ?, 'student', ?) RETURNING id`,
-    ).bind(name, contact.email, contact.phone, password, Date.now()).first();
+       VALUES (?, ?, ?, ?, 'student', ?)`,
+    ).bind(name, contact.email, contact.phone, password, Date.now()).run();
+    insertedId = Number(inserted.meta && inserted.meta.last_row_id);
+    if (!inserted.meta || inserted.meta.changes !== 1 || !Number.isSafeInteger(insertedId) || insertedId < 1) {
+      const error = new Error("D1_INSERT_DID_NOT_RETURN_ROW_ID");
+      error.name = "D1InsertError";
+      throw error;
+    }
   } catch (error) {
     if (String(error && error.message).includes("UNIQUE constraint failed")) {
       return json({ error: "Bu e-posta veya telefon zaten kayıtlı." }, 409);
     }
+    logFailure("Register insert failed", error);
     throw error;
   }
 
-  const user = { id: inserted.id, email: contact.email, phone: contact.phone };
+  const user = { id: insertedId, email: contact.email, phone: contact.phone };
   try {
     for (const type of types) await createChallenge(env, user, type, "verify");
   } catch (error) {
     console.error("Verification delivery failed");
     return json({ error: error.status ? error.message : "Doğrulama kodu gönderilemedi." }, error.status || 503);
   }
-  return json({ id: inserted.id, verificationRequired: true }, 201);
+  return json({ id: insertedId, verificationRequired: true }, 201);
 }
 
 async function login(request, env) {
@@ -447,7 +489,7 @@ async function adminUsers(request, env) {
 
 function addCors(response, request, env) {
   const requestOrigin = request.headers.get("Origin");
-  const allowed = String(env.APP_ORIGIN || "").split(",").map((value) => value.trim()).filter(Boolean);
+  const allowed = allowedOrigins(env);
   const headers = new Headers(response.headers);
   headers.set("Vary", "Origin");
   headers.set("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
@@ -462,8 +504,9 @@ function addCors(response, request, env) {
 export default {
   async fetch(request, env) {
     const origin = request.headers.get("Origin");
-    const allowed = String(env.APP_ORIGIN || "").split(",").map((value) => value.trim()).filter(Boolean);
-    if (origin && allowed.length && !allowed.includes("*") && !allowed.includes(origin)) {
+    const allowed = allowedOrigins(env);
+    if (origin && (!allowed.length || (!allowed.includes("*") && !allowed.includes(origin)))) {
+      console.error("CORS rejected request", allowed.length ? "ORIGIN_NOT_ALLOWED" : "APP_ORIGIN_MISSING");
       return addCors(json({ error: "Origin izinli değil." }, 403), request, env);
     }
     if (request.method === "OPTIONS") {
@@ -473,7 +516,11 @@ export default {
     try {
       const url = new URL(request.url);
       let response;
-      if (request.method === "POST" && url.pathname === "/api/auth/register") response = await register(request, env);
+      if (request.method === "GET" && (url.pathname === "/" || url.pathname === "/healthz")) {
+        response = await health(env);
+      } else if (!env.DB || typeof env.DB.prepare !== "function") {
+        response = json({ error: "D1 veritabanı bağlaması eksik." }, 503);
+      } else if (request.method === "POST" && url.pathname === "/api/auth/register") response = await register(request, env);
       else if (request.method === "POST" && url.pathname === "/api/auth/login") response = await login(request, env);
       else if (request.method === "POST" && url.pathname === "/api/auth/verify") response = await verifyCode(request, env);
       else if (request.method === "POST" && url.pathname === "/api/auth/resend") response = await resendCode(request, env);
@@ -487,7 +534,10 @@ export default {
       if (String(error && error.message).includes("UNIQUE constraint failed")) {
         return addCors(json({ error: "Bu e-posta veya telefon zaten kayıtlı." }, 409), request, env);
       }
-      console.error("Worker request failed", error && error.name ? error.name : "Error");
+      logFailure("Worker request failed", error);
+      if (/no such table|no such column|no such database/i.test(String(error && error.message || ""))) {
+        return addCors(json({ error: "D1 şeması eksik; schema.sql dosyasını bu veritabanına uygulayın." }, 503), request, env);
+      }
       return addCors(json({ error: "İstek tamamlanamadı." }, 500), request, env);
     }
   },
