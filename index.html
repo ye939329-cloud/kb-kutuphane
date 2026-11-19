@@ -134,7 +134,7 @@ nav button[aria-current="true"]{color:#7ce1eb;background:rgba(54,184,202,.13)}
 /* ---------- Depolama: hesabına bağlı özel veritabanı (yoksa yalnızca bu cihaz) ---------- */
 var mem = {}, DB = null, VID = null, P = null, D = null, user = null;
 var SUPPORT_EMAIL = "iletisim.kbkutuphane@gmail.com";
-var API_BASE = window.DCA_API_BASE || "", IS_STATIC_PAGES = /\.github\.io$/i.test(location.hostname), USE_API = !IS_STATIC_PAGES && (location.protocol === "http:" || location.protocol === "https:"), pendingAuth = null;
+var API_BASE = String(window.DCA_API_BASE || "https://kb-kutuphane-api.kocabogayunis02.workers.dev").replace(/\/+$/,""), IS_STATIC_PAGES = /\.github\.io$/i.test(location.hostname), USE_API = !!API_BASE || (!IS_STATIC_PAGES && (location.protocol === "http:" || location.protocol === "https:")), pendingAuth = null;
 function lsGet(k){ try { var v = localStorage.getItem(k); return v ? JSON.parse(v) : (mem[k] || null); } catch(e){ return mem[k] || null; } }
 function lsSet(k,v){ mem[k] = v; try { localStorage.setItem(k, JSON.stringify(v)); } catch(e){} }
 function lsDel(k){ delete mem[k]; try { localStorage.removeItem(k); } catch(e){} }
