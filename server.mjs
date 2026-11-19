@@ -192,6 +192,7 @@ app.get("/api/admin/users", (req, res) => {
   } catch (error) { res.status(error.message === "unauthorized" ? 401 : 403).json({ error: "Yönetici yetkisi gerekli." }); }
 });
 
-const staticFile = path.join(root, "..", "ders-calisma-uygulamasi.html");
+const staticCandidates = [path.join(root, "ders-calisma-uygulamasi.html"), path.join(root, "..", "ders-calisma-uygulamasi.html")];
+const staticFile = staticCandidates.find((file) => fs.existsSync(file)) || staticCandidates[0];
 app.get("/", (req, res) => res.sendFile(staticFile));
 app.listen(port, () => console.log(`Ders Çalışma backend: ${origin}`));
