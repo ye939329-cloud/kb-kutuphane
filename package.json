@@ -1,0 +1,17 @@
+{
+  "name": "ders-calisma-guvenli-backend",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node server.mjs"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "helmet": "^8.0.0",
+    "nodemailer": "^7.0.1"
+  }
+}
