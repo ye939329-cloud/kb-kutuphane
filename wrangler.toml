@@ -5,11 +5,11 @@ compatibility_date = "2025-03-01"
 [[d1_databases]]
 binding = "DB"
 database_name = "ders-calisma-db"
-database_id = "REPLACE_WITH_D1_DATABASE_ID"
+database_id = "735e56ed-9b50-4a5f-943a-3c530ad35fdd"
 
 [vars]
 # Set this to the exact frontend origin(s), comma-separated. Use * only for local testing.
-APP_ORIGIN = "https://your-frontend.example"
+APP_ORIGIN = "https://ye939329-cloud.github.io"
 # Set a verified sender address for Resend; do not put the provider API key here.
 EMAIL_FROM = "Ders Çalışma <noreply@example.com>"
 # Optional Twilio sender number; credentials belong in Wrangler secrets.
