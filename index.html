@@ -1,0 +1,822 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Ders Çalışma Uygulaması</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#edf5f6;--card:rgba(255,255,255,.92);--ink:#12303a;--mute:#5d7480;--line:#d3e0e3;--pri:#0f5c6e;--pri-ink:#fff;--acc:#e8a317;--ok:#2e8b57;--bad:#c0392b;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);color-scheme:light}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0e1c21;--card:#16282f;--ink:#e3eef0;--mute:#93aab3;--line:#2a4149;--pri:#4fb3c8;--pri-ink:#06222a;--acc:#f0b73c;--ok:#3f9d68;--bad:#d9604f;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0e1c21;--card:#16282f;--ink:#e3eef0;--mute:#93aab3;--line:#2a4149;--pri:#4fb3c8;--pri-ink:#06222a;--acc:#f0b73c;--ok:#3f9d68;--bad:#d9604f;color-scheme:dark}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:radial-gradient(circle at 0 0,rgba(79,179,200,.18),transparent 34rem),linear-gradient(135deg,var(--bg),#dfecee);color:var(--ink);font-family:"Plus Jakarta Sans",system-ui,-apple-system,Segoe UI,sans-serif;line-height:1.5}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:3px solid var(--acc);outline-offset:2px}
+.wrap{max-width:860px;margin:0 auto;padding:16px 16px 96px}
+h1,h2,h3{margin:0 0 8px;line-height:1.2}
+h2{font-size:1.25rem}h3{font-size:1rem}
+.card{background:var(--card);border:1px solid rgba(211,224,227,.8);border-radius:18px;padding:18px;margin-bottom:14px;box-shadow:0 10px 26px rgba(18,48,58,.07);backdrop-filter:blur(8px)}
+.mute{color:var(--mute);font-size:.9rem}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.row>.grow{flex:1;min-width:120px}
+input,select,textarea{background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:10px 12px;width:100%}
+.btn{background:linear-gradient(135deg,var(--pri),#187e91);color:var(--pri-ink);border:0;border-radius:12px;padding:10px 16px;font-weight:600;box-shadow:0 5px 12px rgba(15,92,110,.18);transition:transform .18s,box-shadow .18s,filter .18s}
+.btn:hover{filter:brightness(1.06);transform:translateY(-1px);box-shadow:0 8px 16px rgba(15,92,110,.24)}
+.btn.ghost{background:rgba(255,255,255,.3);color:var(--ink);border:1px solid var(--line);box-shadow:none}
+.btn.sm{padding:6px 10px;font-size:.85rem}
+.btn:disabled{opacity:.5}
+.top{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:14px;flex-wrap:wrap}
+.top h1{font-size:1.35rem}
+nav{position:fixed;left:0;right:0;bottom:0;background:rgba(255,255,255,.86);border-top:1px solid var(--line);display:flex;justify-content:center;padding:8px 6px calc(8px + env(safe-area-inset-bottom,0px));gap:4px;z-index:5;backdrop-filter:blur(14px);box-shadow:0 -8px 24px rgba(18,48,58,.08)}
+nav button{flex:1;max-width:120px;background:none;border:0;border-radius:10px;padding:6px 2px;font-size:.72rem;color:var(--mute);display:flex;flex-direction:column;align-items:center;gap:2px}
+nav button span{font-size:1.2rem}
+nav button[aria-current="true"]{color:var(--pri);background:rgba(79,179,200,.14);font-weight:800}
+.quote{border-left:4px solid var(--acc);padding:4px 0 4px 12px;margin:10px 0}
+.quote p{margin:0 0 4px;font-size:1.02rem}
+.list{list-style:none;margin:0;padding:0}
+.list li{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--line)}
+.list li:last-child{border:0}
+.list .t{flex:1}
+.done .t{text-decoration:line-through;color:var(--mute)}
+input[type=checkbox]{width:20px;height:20px;accent-color:var(--pri);flex:none;padding:0}
+.week{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px}
+@media (max-width:640px){.week{grid-template-columns:1fr}}
+.day{background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:8px;min-height:80px}
+.day.today{border:2px solid var(--pri)}
+.day h3{font-size:.85rem}
+.chip{display:block;background:var(--card);border:1px solid var(--line);border-radius:8px;padding:4px 6px;margin-top:4px;font-size:.78rem;text-align:left;width:100%}
+.chip.done{text-decoration:line-through;color:var(--mute)}
+.bar{height:10px;background:var(--line);border-radius:8px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--ok)}
+.clock{font-size:3.4rem;font-weight:800;text-align:center;font-variant-numeric:tabular-nums;margin:6px 0}
+.grid30{display:grid;grid-template-columns:repeat(6,1fr);gap:6px}
+@media (max-width:480px){.grid30{grid-template-columns:repeat(5,1fr)}}
+.juz{border:1px solid var(--line);background:var(--bg);border-radius:10px;padding:10px 0;font-weight:600}
+.juz[aria-pressed="true"]{background:var(--ok);color:#fff;border-color:var(--ok)}
+.chat{max-height:50vh;overflow:auto;display:flex;flex-direction:column;gap:8px;margin-bottom:10px}
+.msg{padding:10px 12px;border-radius:14px;max-width:92%;white-space:pre-wrap}
+.msg.u{align-self:flex-end;background:var(--pri);color:var(--pri-ink)}
+.msg.a{align-self:flex-start;background:var(--bg);border:1px solid var(--line)}
+.sug{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+.sug button{border-radius:20px}
+a{color:var(--pri);font-weight:600}
+.res{display:block;padding:14px;border:1px solid var(--line);border-radius:12px;margin-bottom:8px;text-decoration:none;color:var(--ink);background:rgba(255,255,255,.28);transition:transform .18s,background .18s}
+.res:hover{transform:translateX(3px);background:rgba(79,179,200,.1)}
+.res small{display:block;color:var(--mute);font-weight:400}
+.login{max-width:400px;margin:6vh auto 0}
+.err{color:var(--bad);min-height:1.3em;font-size:.9rem}
+.tabs2{display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap}
+.tabs2 button[aria-pressed="true"]{background:var(--pri);color:var(--pri-ink)}
+.stats{display:flex;gap:10px;flex-wrap:wrap}
+.stat{flex:1;min-width:110px;background:var(--bg);border-radius:10px;padding:10px}
+.stat b{display:block;font-size:1.3rem}
+.opt{display:block;width:100%;text-align:left;margin-top:6px;padding:10px;border:1px solid var(--line);background:var(--bg);border-radius:10px}
+.opt.ok{background:var(--ok);color:#fff;border-color:var(--ok)}
+.opt.no{background:var(--bad);color:#fff;border-color:var(--bad)}
+.media-box{border:1px dashed var(--line);border-radius:12px;padding:12px;text-align:center;background:var(--bg)}
+.media-box video,.media-box img{display:block;max-width:100%;max-height:280px;margin:10px auto;border-radius:10px}
+.video-frame{width:100%;aspect-ratio:16/9;border:0;border-radius:12px;background:#000;margin-top:12px}
+.note{border-left:4px solid var(--pri);padding:8px 12px;background:var(--bg);border-radius:0 8px 8px 0}
+.password-meter{height:8px;background:var(--line);border-radius:8px;overflow:hidden;margin-top:6px}
+.password-meter i{display:block;height:100%;width:0;background:var(--bad);transition:width .2s,background .2s}
+.password-status{font-size:.82rem;color:var(--bad);min-height:1.2em;margin-top:4px}
+.auth-brand{font-size:2rem;font-weight:800;letter-spacing:-.04em;color:var(--pri);margin-bottom:4px}
+.auth-switch{display:flex;gap:6px;margin:14px 0}
+.auth-switch button{flex:1}
+.requirements{background:var(--bg);border-radius:10px;padding:10px 12px;margin:8px 0;font-size:.82rem}
+.requirements b{display:block;margin-bottom:4px}
+.requirements span{display:block;color:var(--mute)}
+.requirements span.ok{color:var(--ok);font-weight:600}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+/* ---------- Görsel tema ---------- */
+body{min-height:100vh;background:#07191f;color:#eaf7f8;overflow-x:hidden}
+body:before,body:after{content:"";position:fixed;z-index:-1;border-radius:50%;filter:blur(4px);pointer-events:none}
+body:before{width:360px;height:360px;top:-150px;right:-100px;background:radial-gradient(circle,rgba(49,190,211,.32),transparent 68%)}
+body:after{width:430px;height:430px;bottom:-220px;left:-150px;background:radial-gradient(circle,rgba(232,163,23,.18),transparent 68%)}
+.wrap{max-width:980px;padding-top:24px}
+.top{padding:18px 20px;margin-bottom:18px;border:1px solid rgba(112,220,232,.16);border-radius:22px;background:linear-gradient(135deg,rgba(18,55,65,.94),rgba(8,31,38,.9));box-shadow:0 16px 38px rgba(0,0,0,.24)}
+.top h1{font-size:1.55rem;letter-spacing:-.04em;background:linear-gradient(90deg,#f6ffff,#75d8e5);-webkit-background-clip:text;background-clip:text;color:transparent}
+.top .mute{color:#8ebac1}
+.card{background:linear-gradient(145deg,rgba(19,52,61,.96),rgba(11,35,43,.96));border:1px solid rgba(113,211,222,.16);box-shadow:0 14px 32px rgba(0,0,0,.22);color:#eaf7f8}
+.card:hover{border-color:rgba(113,211,222,.36);box-shadow:0 18px 38px rgba(0,0,0,.3)}
+.mute{color:#91b3ba}
+input,select,textarea{background:rgba(4,22,28,.72);border-color:rgba(123,207,216,.2);color:#eaf7f8}
+input::placeholder,textarea::placeholder{color:#71949b}
+.btn{background:linear-gradient(135deg,#36b8ca,#148095);box-shadow:0 8px 18px rgba(20,128,149,.24)}
+.btn.ghost{background:rgba(255,255,255,.035);border-color:rgba(123,207,216,.24);color:#d9f3f5}
+.btn.ghost:hover{background:rgba(65,190,207,.12)}
+.tabs2{padding:5px;border-radius:14px;background:rgba(0,0,0,.16)}
+.tabs2 button[aria-pressed="true"]{background:linear-gradient(135deg,#36b8ca,#148095);box-shadow:0 5px 14px rgba(20,128,149,.25)}
+nav{background:rgba(7,25,31,.88);border-top-color:rgba(113,211,222,.2);box-shadow:0 -12px 30px rgba(0,0,0,.3)}
+nav button{color:#789da5}
+nav button[aria-current="true"]{color:#7ce1eb;background:rgba(54,184,202,.13)}
+.stat,.day,.chip,.requirements{background:rgba(4,22,28,.52);border-color:rgba(123,207,216,.14)}
+.day.today{border-color:#39bfd0;box-shadow:0 0 18px rgba(57,191,208,.16)}
+.quote{background:rgba(232,163,23,.06);border-left-color:#f1b63c}
+.opt{background:rgba(4,22,28,.65);border-color:rgba(123,207,216,.18);color:#eaf7f8}
+.opt:hover{background:rgba(54,184,202,.13);border-color:#36b8ca;transform:translateX(2px)}
+.res{background:rgba(4,22,28,.42);border-color:rgba(123,207,216,.18);color:#eaf7f8}
+.note{background:rgba(54,184,202,.08)}
+.media-box{background:rgba(4,22,28,.4);border-color:rgba(123,207,216,.24)}
+.auth-brand{background:linear-gradient(90deg,#36b8ca,#f1b63c);-webkit-background-clip:text;background-clip:text;color:transparent}
+.login{margin-top:8vh}
+@media (max-width:640px){.wrap{padding:12px 10px 100px}.top{padding:15px;border-radius:18px}.top h1{font-size:1.3rem}.card{padding:14px;border-radius:16px}}
+</style>
+</head>
+<body>
+<div class="wrap" id="app"></div>
+<script>
+"use strict";
+/* ---------- Depolama: hesabına bağlı özel veritabanı (yoksa yalnızca bu cihaz) ---------- */
+var mem = {}, DB = null, VID = null, P = null, D = null, user = null;
+var SUPPORT_EMAIL = "iletisim.kbkutuphane@gmail.com";
+var API_BASE = window.DCA_API_BASE || "", IS_STATIC_PAGES = /\.github\.io$/i.test(location.hostname), USE_API = !IS_STATIC_PAGES && (location.protocol === "http:" || location.protocol === "https:"), pendingAuth = null;
+function lsGet(k){ try { var v = localStorage.getItem(k); return v ? JSON.parse(v) : (mem[k] || null); } catch(e){ return mem[k] || null; } }
+function lsSet(k,v){ mem[k] = v; try { localStorage.setItem(k, JSON.stringify(v)); } catch(e){} }
+function lsDel(k){ delete mem[k]; try { localStorage.removeItem(k); } catch(e){} }
+async function initStore(){
+  try { if(typeof claude === "undefined") return; DB = await claude.use("db"); var u = await claude.use("user"); if(DB && u) VID = await u.id(); if(!VID) DB = null; } catch(e){ DB = null; }
+}
+function adminView(){
+  $app.innerHTML = '<div class="top"><div><h1>Yönetici paneli</h1><span class="mute">Ayrı yönetici bağlantısı</span></div><button class="btn ghost sm" id="adminOut">Çıkış</button></div><main>'+
+   '<div class="card"><h2>Yönetici erişimi</h2><p class="note"><b>Güvenlik notu:</b> Bu HTML dosyası tek başına gerçek bir yönetim sunucusu değildir. Kullanıcı listesi, rol kontrolü, e-posta doğrulama ve telefon OTP işlemleri için backend kimlik doğrulaması bağlanmalıdır.</p>'+
+   '<p>Yönetici hesabı yalnızca sunucu tarafında oluşturulmuş hesaplarla giriş yapabilir. İstemciye yönetici parolası gömülmemiştir.</p></div>'+
+   '<div class="card"><h2>Hesap bilgisi</h2><div class="stats"><div class="stat"><b>Yönetici</b><span class="mute">Rol</span></div><div class="stat"><b>'+esc(P && P.contact || "—")+'</b><span class="mute">Giriş hesabı</span></div></div></div>'+
+   '<div class="card"><h2>Kullanıcılar</h2><div id="adminUsers"><p class="mute">Yükleniyor…</p></div></div></main>';
+  document.getElementById("adminOut").onclick = logout;
+  fetch("/api/admin/users",{headers:{Authorization:"Bearer "+(lsGet("dca_api_token")||"")}}).then(function(r){ return r.json(); }).then(function(data){ document.getElementById("adminUsers").innerHTML=(data.users||[]).map(function(u){ return '<div class="list"><div><b>'+esc(u.name)+'</b><br><span class="mute">'+esc(u.email||u.phone||"—")+' · '+esc(u.role)+'</span></div></div>'; }).join("")||'<p class="mute">Kullanıcı bulunamadı.</p>'; }).catch(function(){ document.getElementById("adminUsers").innerHTML='<p class="err">Kullanıcılar yüklenemedi.</p>'; });
+}
+async function sGet(key){
+  if(DB){ try { var s = await DB.doc("data/users/"+VID+"/"+key).get(); return s.exists ? s.data() : null; } catch(e){} }
+  return lsGet("dca_"+key);
+}
+async function sSet(key,val){
+  if(DB){ try { await DB.doc("data/users/"+VID+"/"+key).set(val); return; } catch(e){} }
+  lsSet("dca_"+key, val);
+}
+var saveT = null, saving = false, dirty = false;
+function save(){ dirty = true; clearTimeout(saveT); saveT = setTimeout(flush, 500); }
+async function flush(){
+  if(saving){ saveT = setTimeout(flush, 500); return; }
+  if(!P || !dirty) return; dirty = false; saving = true;
+  try { await sSet(P.key, P); } finally { saving = false; }
+}
+document.addEventListener("visibilitychange", function(){ if(document.hidden && P){ dirty = true; flush(); } });
+
+var DAYS = ["Pazartesi","Salı","Çarşamba","Perşembe","Cuma","Cumartesi","Pazar"];
+var tab = "plan", sub = "gun", rsub = "kay", sp = 0, loginMode = "student", accountMode = "login", admin = false;
+var loginGuard = { fails:0, until:0 };
+var $app = document.getElementById("app");
+function esc(s){ return String(s).replace(/[&<>"']/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]; }); }
+function md(s){ return esc(s).replace(/\*\*(.+?)\*\*/g,"<b>$1</b>").replace(/^[*-] /gm,"• "); }
+function today(){ var d = new Date(); return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
+function dayIdx(){ return (new Date().getDay()+6)%7; }
+function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,6); }
+function fmt(sec){ sec = Math.max(0, Math.round(sec)); var h = Math.floor(sec/3600), m = Math.floor(sec%3600/60), s = sec%60; return (h?h+":":"")+String(m).padStart(2,"0")+":"+String(s).padStart(2,"0"); }
+function hm(min){ var h = Math.floor(min/60), m = Math.round(min%60); return h ? h+" sa "+m+" dk" : m+" dk"; }
+async function sha(s){ var b = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(s)); return Array.from(new Uint8Array(b)).map(function(x){ return x.toString(16).padStart(2,"0"); }).join(""); }
+function newData(){ return { prog:[], todos:[], hatim:{juz:[],count:0}, log:{}, steps:{}, coach:{goal:"",focus:"",reflection:""}, dailySeed:{}, points:0, badges:[], reminders:{water:false,stretch:false,sleep:false} }; }
+function award(points, badge){
+  D.points = (D.points||0) + points;
+  D.badges = D.badges || [];
+  if(badge && D.badges.indexOf(badge)<0) D.badges.push(badge);
+  save();
+}
+var reminderMinute = "";
+function checkReminders(){
+  if(!D || !D.reminders) return;
+  var now = new Date(), minute = String(now.getHours()).padStart(2,"0")+":"+String(now.getMinutes()).padStart(2,"0");
+  if(minute===reminderMinute) return;
+  reminderMinute = minute;
+  var message = D.reminders.water && now.getMinutes()===0 ? "Bir bardak su içme zamanı.":D.reminders.stretch && now.getMinutes()===30 ? "Kısa bir esneme ve göz molası ver.":D.reminders.sleep && minute==="22:00" ? "Uyku hazırlığına başlama zamanı." :"";
+  if(message && "Notification" in window && Notification.permission==="granted") new Notification("Ders Çalışma", {body:message});
+}
+setInterval(checkReminders, 60000);
+
+/* ---------- Sınıfa göre kurgu (4-12) ---------- */
+function lv(g){
+  var base = ["Türkçe","Matematik","Fen Bilimleri","Sosyal Bilgiler","İngilizce","Din Kültürü ve Ahlak Bilgisi"];
+  if(g===8) base = ["Türkçe","Matematik","Fen Bilimleri","T.C. İnkılap Tarihi ve Atatürkçülük","İngilizce","Din Kültürü ve Ahlak Bilgisi"];
+  var L = { subj: base, pomos: [20,30,40,5], goal: [90,"1,5-2 saat"], sleep: "8-10 saat", cyc: [6,5,4], ad: "ortaokul", ex: "Her 20 dakikada kısa bir mola ver." };
+  if(g===4){ L.pomos = [15,20,25,5]; L.goal = [45,"45-60 dakika"]; L.sleep = "9-12 saat"; L.cyc = [7,6,5]; L.ad = "ilkokul"; L.ex = "Çalışmayı 15-20 dakikalık parçalara böl."; }
+  else if(g<=6){ L.goal = [60,"1-1,5 saat"]; L.sleep = "9-12 saat"; L.cyc = [7,6,5]; }
+  else if(g===8){ L.goal = [120,"2-3 saat (LGS hazırlığı)"]; L.ad = "LGS yılı"; }
+  else if(g>=9){
+    L.subj = ["Matematik","Fizik","Kimya","Biyoloji","Türk Dili ve Edebiyatı","Tarih","Coğrafya","İngilizce","Din Kültürü ve Ahlak Bilgisi"];
+    if(g>=10) L.subj.push("Felsefe");
+    L.pomos = [25,45,50,5]; L.ad = "lise"; L.ex = "Konu çalış, ardından soru çöz ve yanlışlarını not et.";
+    L.goal = g===9 ? [120,"2-3 saat"] : g===10 ? [150,"2,5-3,5 saat"] : g===11 ? [180,"3-4 saat"] : [240,"4-6 saat (YKS hazırlığı)"];
+    if(g===12){ L.subj.push("TYT Denemesi","AYT Denemesi"); L.ad = "YKS yılı"; }
+  }
+  return L;
+}
+
+/* ---------- Giriş ---------- */
+async function hash(pin, salt){ return sha(salt+":"+pin); }
+function loginView(){
+  var isAdmin = loginMode==="admin", isRegister = !isAdmin && accountMode==="register";
+  $app.innerHTML = '<div class="card login"><div class="auth-brand">Ders Çalışma</div><h1>'+(isAdmin?"Yönetici girişi":(isRegister?"Hesap oluştur":"Hoş geldin"))+'</h1><p class="mute">'+(isAdmin?"Yönetici paneline ayrı bağlantıdan gir.":(isRegister?"Ücretsiz öğrenci hesabını oluştur.":"Ders planına devam etmek için giriş yap."))+'</p>'+
+  '<div class="auth-switch">'+(isAdmin?'<a class="btn ghost sm" href="#" id="studentMode">Öğrenci girişine dön</a>':'<button class="btn ghost sm" id="loginModeBtn" aria-pressed="'+(!isRegister)+'">Giriş yap</button><button class="btn ghost sm" id="registerModeBtn" aria-pressed="'+isRegister+'">Hesap aç</button><a class="btn ghost sm" href="#yonetici" id="adminMode">Yönetici</a>')+'</div>'+
+  (isAdmin ? '<p><input id="contact" placeholder="Yönetici e-posta veya telefon" autocomplete="username"></p>' :
+  (isRegister?'<div class="row"><input id="ad" class="grow" placeholder="Ad" autocomplete="given-name"><input id="soyad" class="grow" placeholder="Soyad" autocomplete="family-name"></div>':'')+
+  '<p><input id="contact" placeholder="E-posta veya telefon" autocomplete="username"></p>'+
+  (isRegister?'<p><select id="gr" aria-label="Sınıf">'+[4,5,6,7,8,9,10,11,12].map(function(g){ return '<option value="'+g+'">'+g+'. sınıf</option>'; }).join("")+'</select></p>':'') )+
+  '<p><input id="pin" type="password" placeholder="Güçlü parola" autocomplete="'+(isRegister?"new-password":"current-password")+'" minlength="8"></p><div class="password-meter" aria-hidden="true"><i id="pwBar"></i></div><p class="password-status" id="pwStatus" aria-live="polite"></p>'+
+  (isRegister?'<div class="requirements"><b>Parola şartları</b><span id="rLen">○ En az 8 karakter</span><span id="rLow">○ Küçük harf</span><span id="rUp">○ Büyük harf</span><span id="rNum">○ Rakam</span><span id="rSpec">○ Özel karakter</span></div>':'')+
+  '<p class="err" id="err" role="alert"></p><button class="btn" id="go" style="width:100%">'+(isRegister?"Hesap oluştur":"Giriş yap")+'</button>'+(loginMode==="student"&&USE_API&&!isRegister?'<button class="btn ghost" id="forgot" style="width:100%;margin-top:8px">Parolamı unuttum</button>':'')+
+  '<p class="mute" style="margin-top:12px">'+(isAdmin?"Yönetici hesabı sunucu tarafında korunur.":(DB ? 'Verilerin özel veritabanında saklanır. Parola düz metin olarak tutulmaz.' : 'Yerel mod: veriler bu cihazda saklanır.'))+'</p><p class="mute">Destek: <a href="mailto:'+SUPPORT_EMAIL+'">'+SUPPORT_EMAIL+'</a></p></div>';
+  var studentMode = document.getElementById("studentMode"); if(studentMode) studentMode.onclick = function(e){ e.preventDefault(); loginMode = "student"; accountMode = "login"; location.hash = ""; loginView(); };
+  var adminMode = document.getElementById("adminMode"); if(adminMode) adminMode.onclick = function(){ loginMode = "admin"; loginView(); };
+  var lm = document.getElementById("loginModeBtn"); if(lm) lm.onclick = function(){ accountMode="login"; loginView(); };
+  var rm = document.getElementById("registerModeBtn"); if(rm) rm.onclick = function(){ accountMode="register"; loginView(); };
+  document.getElementById("go").onclick = doLogin;
+  var forgot = document.getElementById("forgot"); if(forgot) forgot.onclick = forgotView;
+  document.getElementById("pin").oninput = function(){ updatePasswordMeter(this.value); };
+  document.getElementById("pin").onkeydown = function(e){ if(e.key==="Enter") doLogin(); };
+}
+function forgotView(){
+  $app.innerHTML = '<div class="card login"><h1>Parola sıfırla</h1><p class="mute">Kayıtlı e-posta veya telefonuna kod gönderilir.</p><p><input id="fc" placeholder="E-posta veya telefon"></p><p><input id="fcode" inputmode="numeric" maxlength="6" placeholder="Doğrulama kodu"></p><p><input id="fpass" type="password" placeholder="Yeni güçlü parola"></p><p class="err" id="ferr" role="alert"></p><button class="btn" id="fs" style="width:100%">Kod gönder</button><button class="btn ghost" id="fr" style="width:100%;margin-top:8px">Parolayı yenile</button><button class="btn ghost" id="fb" style="width:100%;margin-top:8px">Girişe dön</button></div>';
+  var sent = false;
+  document.getElementById("fs").onclick = async function(){ var er=document.getElementById("ferr"), c=apiContact(document.getElementById("fc").value); try{ await apiRequest("/auth/forgot",c); sent=true; er.textContent="Kod gönderildi."; }catch(e){ er.textContent=e.message; } };
+  document.getElementById("fr").onclick = async function(){ var er=document.getElementById("ferr"), value=document.getElementById("fc").value, c=apiContact(value), pass=document.getElementById("fpass").value; if(!sent){er.textContent="Önce kod gönder.";return;} if(!validPassword(pass)){er.textContent="Yeni parola tüm kuralları karşılamalı.";return;} try{ await apiRequest("/auth/reset",{email:c.email,phone:c.phone,code:document.getElementById("fcode").value,password:pass}); er.textContent="Parolan yenilendi."; }catch(e){er.textContent=e.message;} };
+  document.getElementById("fb").onclick = loginView;
+}
+function normalizeEmail(v){ return v.trim().toLocaleLowerCase("tr"); }
+function normalizeContact(v){ var x = v.trim().toLocaleLowerCase("tr").replace(/[\s()-]/g,""); return /^0\d{10}$/.test(x) ? "+90"+x.slice(1) : x; }
+function validContact(v){ return /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v) || /^\+?\d{10,15}$/.test(normalizeContact(v)); }
+function passwordScore(p){
+  var score = 0;
+  if(p.length>=8) score++;
+  if(/[a-z]/.test(p)) score++;
+  if(/[A-Z]/.test(p)) score++;
+  if(/\d/.test(p)) score++;
+  if(/[^A-Za-z0-9]/.test(p)) score++;
+  return score;
+}
+function updatePasswordMeter(p){
+  var score = passwordScore(p), bar = document.getElementById("pwBar"), status = document.getElementById("pwStatus");
+  if(!bar || !status) return;
+  bar.style.width = (score*20)+"%";
+  bar.style.background = score<=2 ? "var(--bad)" : score<5 ? "var(--acc)" : "var(--ok)";
+  status.textContent = !p ? "" : score<=2 ? "Güçsüz parola" : score<5 ? "Orta seviye parola — tüm koşulları tamamla" : "Güçlü parola";
+  status.style.color = score<=2 ? "var(--bad)" : score<5 ? "var(--acc)" : "var(--ok)";
+  [["rLen",p.length>=8],["rLow",/[a-z]/.test(p)],["rUp",/[A-Z]/.test(p)],["rNum",/\d/.test(p)],["rSpec",/[^A-Za-z0-9]/.test(p)]].forEach(function(x){ var el=document.getElementById(x[0]); if(el){ el.classList.toggle("ok",x[1]); el.textContent=(x[1]?"✓ ":"○ ")+el.textContent.replace(/^[✓○] /,""); } });
+}
+function validPassword(p){ return p.length>=8 && /[a-z]/.test(p) && /[A-Z]/.test(p) && /\d/.test(p) && /[^A-Za-z0-9]/.test(p); }
+function apiContact(value){ return value.indexOf("@")>-1 ? {email:normalizeEmail(value),phone:null,type:"email"} : {email:null,phone:normalizePhone(value),type:"phone"}; }
+async function apiRequest(path, body){
+  var r = await fetch(API_BASE+"/api"+path, {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(body)});
+  var data = await r.json().catch(function(){ return {}; });
+  if(!r.ok){ var e = new Error(data.error||"İstek başarısız."); e.status = r.status; throw e; }
+  return data;
+}
+function verificationView(contact, password, name, grade){
+  var c = apiContact(contact);
+  $app.innerHTML = '<div class="card login"><h1>Hesabı doğrula</h1><p class="mute">'+(c.type==="email"?"E-posta adresine":"Telefonuna")+' gönderilen 6 haneli kodu yaz.</p><p><input id="vcode" inputmode="numeric" maxlength="6" placeholder="6 haneli kod" autocomplete="one-time-code"></p><p class="err" id="verr" role="alert"></p><button class="btn" id="verify" style="width:100%">Doğrula</button><button class="btn ghost" id="resend" style="width:100%;margin-top:8px">Kodu yeniden gönder</button><button class="btn ghost" id="back" style="width:100%;margin-top:8px">Girişe dön</button></div>';
+  document.getElementById("verify").onclick = async function(){
+    var er = document.getElementById("verr"), code = document.getElementById("vcode").value.trim();
+    if(!/^\d{6}$/.test(code)){ er.textContent = "6 haneli kod gerekli."; return; }
+    try {
+      await apiRequest("/auth/verify", {email:c.email,phone:c.phone,type:c.type,code:code});
+      await backendLogin(contact,password,name,grade);
+    } catch(e){ er.textContent = e.message; }
+  };
+  document.getElementById("resend").onclick = async function(){ var er=document.getElementById("verr"); try{ await apiRequest("/auth/resend",c); er.textContent="Yeni kod gönderildi."; }catch(e){ er.textContent=e.message; } };
+  document.getElementById("back").onclick = loginView;
+}
+async function backendLogin(contact, password, name, grade){
+  var c = apiContact(contact), result;
+  result = await apiRequest("/auth/login", {email:c.email,phone:c.phone,password:password});
+  admin = result.user.role==="admin"; loginMode = admin ? "admin" : "student";
+  lsSet("dca_api_token", result.token);
+  var key = "api_"+result.user.id, local = await sGet(key);
+  P = local || {key:key,name:result.user.name,contact:contact,grade:grade,data:newData()};
+  P.name = result.user.name; P.grade = P.grade || grade; D = P.data || newData(); P.data = D; user = {name:P.name}; start(P);
+}
+async function doLogin(){
+  var contact = document.getElementById("contact").value.trim(), pin = document.getElementById("pin").value, err = document.getElementById("err");
+  var isRegister = loginMode==="student" && accountMode==="register";
+  if(Date.now()<loginGuard.until){ err.textContent = "Çok fazla hatalı deneme. Birkaç dakika sonra tekrar dene."; return; }
+  if(isRegister && (!document.getElementById("ad").value.trim() || !document.getElementById("soyad").value.trim())){ err.textContent = "Ad ve soyad gerekli."; return; }
+  if(!validContact(contact)){ err.textContent = "Geçerli bir e-posta veya telefon yaz."; return; }
+  if(!validPassword(pin)){ err.textContent = "Parola en az 8 karakter olmalı; büyük harf, küçük harf, rakam ve özel karakter içermeli."; return; }
+  if(USE_API){
+    try {
+      if(isRegister){ var c=apiContact(contact); await apiRequest("/auth/register",{name:document.getElementById("ad").value.trim()+" "+document.getElementById("soyad").value.trim(),email:c.email,phone:c.phone,password:pin}); verificationView(contact,pin,document.getElementById("ad").value.trim()+" "+document.getElementById("soyad").value.trim(),+document.getElementById("gr").value); }
+      else await backendLogin(contact,pin,loginMode==="admin"?"Yönetici":"",loginMode==="admin"?12:4);
+    }
+    catch(e){ err.textContent = e.message || "Sunucuya bağlanılamadı."; }
+    return;
+  }
+  var key = (loginMode==="admin"?"admin_":"p_")+(await sha(normalizeContact(contact))).slice(0,20);
+  var p = await sGet(key);
+  if(!p){
+    if(loginMode==="admin"){ err.textContent = "Yönetici hesabı bulunamadı. İlk yönetici hesabını sunucu tarafında oluşturmalısın."; return; }
+    var salt = uid()+uid();
+    if(!isRegister){ err.textContent = "Hesap bulunamadı. Önce Hesap aç seçeneğini kullan."; return; }
+    p = { key:key, name:document.getElementById("ad").value.trim()+" "+document.getElementById("soyad").value.trim(), contact:normalizeContact(contact), salt:salt, hash:await hash(pin,salt), grade:+document.getElementById("gr").value, data:newData() };
+    await sSet(key, p);
+  } else if(p.hash !== await hash(pin, p.salt)){
+    loginGuard.fails++; if(loginGuard.fails>=5){ loginGuard.until = Date.now()+5*60*1000; loginGuard.fails = 0; err.textContent = "Çok fazla hatalı deneme. 5 dakika bekle."; } else err.textContent = "Parola yanlış.";
+    return;
+  }
+  loginGuard.fails = 0; loginGuard.until = 0;
+  lsSet("dca_session", key); admin = loginMode==="admin"; start(p);
+}
+function start(p){
+  P = p; D = p.data || newData(); P.data = D; D.hatim = D.hatim || {juz:[],count:0}; D.log = D.log || {}; D.steps = D.steps || {}; D.coach = D.coach || {goal:"",focus:"",reflection:""}; D.dailySeed = D.dailySeed || {}; D.points = D.points || 0; D.badges = D.badges || []; D.reminders = D.reminders || {water:false,stretch:false,sleep:false};
+  user = { name:p.name }; T.target = lv(p.grade).pomos[0]*60000; T.acc = 0; render();
+}
+function logout(){ stopTimer(); flush(); lsDel("dca_session"); P = D = user = null; admin = false; loginMode = "student"; location.hash = ""; loginView(); }
+
+/* ---------- Ayet ve hadis ---------- */
+var AYET = [
+ ["Şüphesiz zorluğun yanında bir kolaylık vardır.","İnşirah, 94/5-6"],
+ ["De ki: Rabbim, ilmimi artır.","Tâhâ, 20/114"],
+ ["İnsan için ancak çalışmasının karşılığı vardır.","Necm, 53/39"],
+ ["Allah hiç kimseye gücünün yeteceğinden fazlasını yüklemez.","Bakara, 2/286"],
+ ["Yaratan Rabbinin adıyla oku.","Alak, 96/1"],
+ ["De ki: Hiç bilenlerle bilmeyenler bir olur mu?","Zümer, 39/9"],
+ ["Gevşemeyin, hüzünlenmeyin; eğer inanıyorsanız en üstün olan sizsiniz.","Âl-i İmrân, 3/139"],
+ ["Allah, içinizden iman edenleri ve kendilerine ilim verilenleri derece derece yükseltir.","Mücâdele, 58/11"],
+ ["Ey iman edenler! Sabır ve namazla yardım dileyin. Şüphesiz Allah sabredenlerle beraberdir.","Bakara, 2/153"],
+ ["Kim Allah’a tevekkül ederse O, ona yeter.","Talâk, 65/3"],
+ ["Biliniz ki kalpler ancak Allah’ı anmakla huzur bulur.","Ra’d, 13/28"],
+ ["Karar verdiğinde Allah’a tevekkül et.","Âl-i İmrân, 3/159"],
+ ["Ey kendilerine karşı aşırı giden kullarım! Allah’ın rahmetinden ümidinizi kesmeyin.","Zümer, 39/53"],
+ ["Rabbin seni ne terk etti ne de sana darıldı.","Duhâ, 93/3"],
+ ["Beni anın ki ben de sizi anayım.","Bakara, 2/152"],
+ ["Allah’tan kulları içinde ancak âlimler gereği gibi korkar.","Fâtır, 35/28"],
+ ["İyilik ve takvada yardımlaşın.","Mâide, 5/2"],
+ ["Kim zerre kadar hayır işlerse onu görür.","Zilzâl, 99/7"],
+ ["İnsan gerçekten ziyandadır; ancak iman edip salih amel işleyenler, birbirine hakkı ve sabrı tavsiye edenler hariç.","Asr, 103/2-3"],
+ ["Allah’ın rahmetinden ancak inkâr edenler ümidini keser.","Yûsuf, 12/87"],
+ ["Allah sizi annelerinizin karnından hiçbir şey bilmez halde çıkardı; size kulak, göz ve gönül verdi.","Nahl, 16/78"],
+ ["Rabbim! Göğsümü genişlet, işimi kolaylaştır.","Tâhâ, 20/25-26"],
+ ["Hikmet kime verilirse, ona büyük bir hayır verilmiş olur.","Bakara, 2/269"],
+ ["İyiliğin karşılığı yalnızca iyiliktir.","Rahmân, 55/60"],
+ ["Sabret; çünkü Allah iyilik edenlerin mükâfatını zayi etmez.","Hûd, 11/115"]
+];
+var HADIS = [
+ ["İlim öğrenmek her Müslüman’a farzdır.","İbn Mâce, Mukaddime 17"],
+ ["Ameller niyetlere göredir.","Buhârî, Bed’ü’l-vahy 1"],
+ ["Kim ilim öğrenmek için bir yola girerse, Allah ona cennete giden yolu kolaylaştırır.","Müslim, Zikir 38"],
+ ["İki nimet vardır ki insanların çoğu onlarda aldanmıştır: sağlık ve boş vakit.","Buhârî, Rikâk 1"],
+ ["Kolaylaştırın, zorlaştırmayın; müjdeleyin, nefret ettirmeyin.","Buhârî, İlim 11"],
+ ["Kuvvetli mümin, zayıf müminden daha hayırlı ve Allah katında daha sevimlidir.","Müslim, Kader 34"],
+ ["Din nasihattir.","Müslim, Îmân 95"],
+ ["Sizin en hayırlınız, Kur’an’ı öğrenen ve öğretendir.","Buhârî, Fedâilü’l-Kur’ân 21"],
+ ["Güzel söz sadakadır.","Buhârî, Cihâd 128"],
+ ["Müslüman, elinden ve dilinden diğer Müslümanların güvende olduğu kimsedir.","Buhârî, Îmân 4"],
+ ["Temizlik imanın yarısıdır.","Müslim, Tahâret 1"],
+ ["Sana şüphe veren şeyi bırak, şüphe vermeyene bak.","Tirmizî, Kıyâmet 60"],
+ ["Sizden biriniz, kendisi için istediğini kardeşi için de istemedikçe iman etmiş olmaz.","Buhârî, Îmân 7"],
+ ["Hayâ imandandır.","Buhârî, Îmân 3"],
+ ["Kardeşinin yüzüne tebessüm etmen sadakadır.","Tirmizî, Birr 36"],
+ ["Allah’ın en çok sevdiği ameller, az da olsa devamlı olanıdır.","Buhârî, Rikâk 18"],
+ ["İnsan ölünce ameli kesilir; ancak üç şey hariç: sadaka-i câriye, faydalanılan ilim ve hayırlı evlat.","Müslim, Vasiyyet 14"],
+ ["Kim bir hayra vesile olursa, onu yapan gibi sevap alır.","Müslim, İmâre 133"],
+ ["Güçlü kimse güreşte yenen değil, öfkelendiğinde kendine hâkim olandır.","Buhârî, Edeb 76"],
+ ["Allah, kimin için hayır dilerse onu dinde anlayış sahibi kılar.","Buhârî, İlim 10"],
+ ["Sabır, ilk darbede gösterilendir.","Buhârî, Cenâiz 32"],
+ ["Mümin, bir delikten iki defa sokulmaz.","Buhârî, Edeb 83"],
+ ["Allah’ım! Ümmetimin sabah erken saatlerini bereketli kıl.","Ebû Dâvûd, Cihâd 87"],
+ ["Dua ibadetin özüdür.","Tirmizî, Deavât 1"],
+ ["Kim bir müminin dünya sıkıntılarından birini giderirse, Allah da onun kıyamet sıkıntılarından birini giderir.","Müslim, Zikir 38"]
+];
+function dailyIdx(){ var d = new Date(); return Math.floor(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate())/86400000); }
+
+/* ---------- Zamanlayıcı ---------- */
+var T = { mode:"sw", run:false, acc:0, last:0, target:25*60000, iv:null };
+function tick(){
+  var now = Date.now(), d = now - T.last; T.last = now; T.acc += d;
+  D.log[today()] = (D.log[today()]||0) + d/1000;
+  if(T.mode==="cd" && T.acc >= T.target){ T.acc = T.target; finishTimer(); }
+  var el = document.getElementById("clock"); if(el) el.textContent = fmt(T.mode==="cd" ? (T.target-T.acc)/1000 : T.acc/1000);
+  var st = document.getElementById("todaySt"); if(st) st.textContent = hm((D.log[today()]||0)/60);
+}
+function startTimer(){ if(T.run) return; T.run = true; T.last = Date.now(); T.iv = setInterval(tick, 250); updTimerBtns(); }
+function stopTimer(){ if(T.iv) clearInterval(T.iv); T.iv = null; if(T.run){ T.run = false; if(D) save(); } updTimerBtns(); }
+function resetTimer(){ stopTimer(); T.acc = 0; var el = document.getElementById("clock"); if(el) el.textContent = fmt(T.mode==="cd" ? T.target/1000 : 0); updTimerBtns(); }
+function finishTimer(){
+  stopTimer();
+  try { var c = new (window.AudioContext||window.webkitAudioContext)(), o = c.createOscillator(); o.connect(c.destination); o.frequency.value = 880; o.start(); setTimeout(function(){ o.stop(); }, 700); } catch(e){}
+  try { navigator.vibrate && navigator.vibrate(300); } catch(e){}
+  var m = document.getElementById("tmsg"); if(m) m.textContent = "Süre doldu. Kısa bir mola ver.";
+}
+function updTimerBtns(){ var b = document.getElementById("tgo"); if(b) b.textContent = T.run ? "Duraklat" : (T.acc ? "Devam et" : "Başlat"); }
+
+/* ---------- Çerçeve ---------- */
+var TABS = [["plan","📅","Plan"],["sure","⏱️","Süre"],["kaynak","📚","Kaynak"],["video","▶️","Videolar"],["koc","🎯","Koçluk"],["yasam","🌿","Yaşam"],["asist","💬","Asistan"],["hesap","👤","Hesap"],["guven","🔒","Güvenlik"],["manevi","🕌","Manevi"]];
+function render(){
+  if(cameraStream && !(tab==="asist" && aiMode==="goruntu")){ cameraStream.getTracks().forEach(function(t){ t.stop(); }); cameraStream = null; }
+  if(admin){ adminView(); return; }
+  var views = { plan: planView, sure: timerView, kaynak: resView, video: videoView, koc: coachView, yasam: lifeView, asist: aiView, hesap: profileView, guven: securityView, manevi: spiritView };
+  $app.innerHTML = '<div class="top"><div><h1>Merhaba, '+esc(user.name)+'</h1><span class="mute">'+(DB?'Özel veritabanı bağlı':'Yalnızca bu cihazda saklanıyor')+'</span></div><div class="row"><select id="gs" aria-label="Sınıf" style="width:auto">'+[4,5,6,7,8,9,10,11,12].map(function(g){ return '<option value="'+g+'"'+(g===P.grade?" selected":"")+'>'+g+'. sınıf</option>'; }).join("")+'</select><button class="btn ghost sm" id="out">Çıkış</button></div></div><main id="main"></main>'+
+    '<nav aria-label="Bölümler">'+TABS.map(function(t){ return '<button data-tab="'+t[0]+'" aria-current="'+(tab===t[0])+'"><span aria-hidden="true">'+t[1]+'</span>'+t[2]+'</button>'; }).join("")+'</nav>';
+  document.getElementById("out").onclick = logout;
+  document.getElementById("gs").onchange = function(e){ P.grade = +e.target.value; if(!T.run){ T.target = lv(P.grade).pomos[0]*60000; T.acc = 0; } QZ.items = []; save(); render(); };
+  document.querySelectorAll("nav button").forEach(function(b){ b.onclick = function(){ tab = b.dataset.tab; render(); window.scrollTo(0,0); }; });
+  views[tab](document.getElementById("main"));
+}
+
+/* ---------- Plan ---------- */
+function planView(m){
+  m.innerHTML = '<div class="tabs2">'+[["gun","Bugün"],["hafta","Haftalık plan"],["prog","Ders programı"]].map(function(x){ return '<button class="btn ghost sm" data-s="'+x[0]+'" aria-pressed="'+(sub===x[0])+'">'+x[1]+'</button>'; }).join("")+'</div><div id="sv"></div>';
+  m.querySelectorAll("[data-s]").forEach(function(b){ b.onclick = function(){ sub = b.dataset.s; render(); }; });
+  var v = document.getElementById("sv"); if(sub==="gun") todayView(v); else if(sub==="hafta") weekView(v); else progView(v);
+}
+function todayView(v){
+  var td = today(), di = dayIdx(), L = lv(P.grade);
+  if(!D.dailySeed[td]){
+    D.todos.push({id:uid(), text:"25 dakika odaklı ders çalış", date:td, done:false, coachTask:true});
+    D.todos.push({id:uid(), text:"10 soru çöz ve yanlışlarını incele", date:td, done:false, coachTask:true});
+    D.todos.push({id:uid(), text:"Su iç ve 5 dakika hareket molası ver", date:td, done:false, coachTask:true});
+    D.dailySeed[td] = true; save();
+  }
+  var todos = D.todos.filter(function(t){ return t.date===td; });
+  var plan = D.prog.filter(function(p){ return +p.day===di; }).sort(function(a,b){ return a.time<b.time?-1:1; });
+  var doneN = todos.filter(function(t){ return t.done; }).length, mins = (D.log[td]||0)/60, pct = Math.min(100, Math.round(mins/L.goal[0]*100));
+  v.innerHTML = '<div class="card"><h2>Bugünün özeti</h2><div class="stats"><div class="stat"><b id="todaySt">'+hm(mins)+'</b><span class="mute">çalışılan süre</span></div><div class="stat"><b>'+doneN+'/'+todos.length+'</b><span class="mute">tamamlanan görev</span></div><div class="stat"><b>'+plan.length+'</b><span class="mute">programdaki ders</span></div></div>'+
+   '<p class="mute" style="margin:10px 0 4px">'+P.grade+'. sınıf için önerilen günlük çalışma: '+L.goal[1]+' (genel öneri)</p><div class="bar" role="progressbar" aria-valuenow="'+pct+'" aria-valuemin="0" aria-valuemax="100"><i style="width:'+pct+'%"></i></div><p class="mute" style="margin:6px 0 0">'+esc(L.ex)+'</p></div>'+
+   '<div class="card"><h2>Bugünün dersleri</h2>'+(plan.length? '<ul class="list">'+plan.map(function(p){ return '<li class="'+(p.done?"done":"")+'"><input type="checkbox" data-pd="'+p.id+'" '+(p.done?"checked":"")+' aria-label="Tamamlandı"><span class="t">'+esc(p.time)+" · "+esc(p.subject)+' <span class="mute">('+p.min+' dk)</span></span></li>'; }).join("")+'</ul>' : '<p class="mute">Bugün için ders eklenmemiş. “Ders programı” sekmesinden ekle.</p>')+'</div>'+
+   '<div class="card"><h2>Yapılacaklar</h2><div class="row"><input class="grow" id="nt" placeholder="Yeni görev yaz" maxlength="120"><button class="btn" id="at">Ekle</button></div>'+
+   (todos.length? '<ul class="list">'+todos.map(function(t){ return '<li class="'+(t.done?"done":"")+'"><input type="checkbox" data-td="'+t.id+'" '+(t.done?"checked":"")+' aria-label="Tamamlandı"><span class="t">'+esc(t.text)+'</span><button class="btn ghost sm" data-dl="'+t.id+'" aria-label="Sil">Sil</button></li>'; }).join("")+'</ul>' : '<p class="mute">Liste boş. İlk görevini ekle.</p>')+'</div>';
+  function add(){ var t = document.getElementById("nt").value.trim(); if(!t) return; D.todos.push({id:uid(), text:t, date:td, done:false}); save(); render(); }
+  document.getElementById("at").onclick = add;
+  document.getElementById("nt").onkeydown = function(e){ if(e.key==="Enter") add(); };
+  v.querySelectorAll("[data-td]").forEach(function(c){ c.onchange = function(){ var task=D.todos.find(function(t){ return t.id===c.dataset.td; }); if(task && c.checked && !task.rewarded){ task.rewarded=true; award(10,D.todos.filter(function(x){return x.rewarded;}).length>=3?"İlk 3 görev":""); } if(task) task.done = c.checked; save(); render(); }; });
+  v.querySelectorAll("[data-pd]").forEach(function(c){ c.onchange = function(){ D.prog.find(function(t){ return t.id===c.dataset.pd; }).done = c.checked; save(); render(); }; });
+  v.querySelectorAll("[data-dl]").forEach(function(b){ b.onclick = function(){ D.todos = D.todos.filter(function(t){ return t.id!==b.dataset.dl; }); save(); render(); }; });
+}
+function weekStudied(){
+  var s = 0, d = new Date(); d.setDate(d.getDate()-dayIdx());
+  for(var i=0;i<7;i++){ var k = d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); s += D.log[k]||0; d.setDate(d.getDate()+1); }
+  return s/60;
+}
+function weekView(v){
+  var planned = D.prog.reduce(function(a,p){ return a+(+p.min); }, 0), doneMin = D.prog.filter(function(p){ return p.done; }).reduce(function(a,p){ return a+(+p.min); }, 0), pct = planned ? Math.round(doneMin/planned*100) : 0;
+  v.innerHTML = '<div class="card"><h2>Bu hafta</h2><div class="stats"><div class="stat"><b>'+hm(planned)+'</b><span class="mute">planlanan</span></div><div class="stat"><b>'+hm(weekStudied())+'</b><span class="mute">zamanlayıcıyla çalışılan</span></div></div>'+
+   '<p class="mute" style="margin:10px 0 4px">Programın %'+pct+' tamamlandı</p><div class="bar" role="progressbar" aria-valuenow="'+pct+'" aria-valuemin="0" aria-valuemax="100"><i style="width:'+pct+'%"></i></div><p><button class="btn ghost sm" id="wr">Haftayı sıfırla</button></p></div>'+
+   '<div class="week">'+DAYS.map(function(n,i){ var items = D.prog.filter(function(p){ return +p.day===i; }).sort(function(a,b){ return a.time<b.time?-1:1; });
+     return '<div class="day'+(i===dayIdx()?" today":"")+'"><h3>'+n+'</h3>'+(items.map(function(p){ return '<span class="chip'+(p.done?" done":"")+'">'+esc(p.time)+" "+esc(p.subject)+" · "+p.min+' dk</span>'; }).join("")||'<span class="mute">—</span>')+'</div>'; }).join("")+'</div>';
+  document.getElementById("wr").onclick = function(){ D.prog.forEach(function(p){ p.done = false; }); save(); render(); };
+}
+function progView(v){
+  var L = lv(P.grade);
+  v.innerHTML = '<div class="card"><h2>Ders ekle</h2><div class="row"><select id="pd" class="grow" aria-label="Gün">'+DAYS.map(function(n,i){ return '<option value="'+i+'"'+(i===dayIdx()?" selected":"")+'>'+n+'</option>'; }).join("")+'</select>'+
+   '<input id="pt" class="grow" type="time" value="18:00" aria-label="Başlangıç saati"><input id="ps" class="grow" list="dl" placeholder="Ders" maxlength="40"><datalist id="dl">'+L.subj.map(function(s){ return '<option value="'+esc(s)+'">'; }).join("")+'</datalist><input id="pm" class="grow" type="number" min="5" max="480" value="'+L.pomos[1]+'" aria-label="Süre (dk)"><button class="btn" id="pa">Ekle</button></div></div>'+
+   '<div class="card"><h2>Programım</h2>'+(D.prog.length? '<ul class="list">'+D.prog.slice().sort(function(a,b){ return a.day-b.day || (a.time<b.time?-1:1); }).map(function(p){ return '<li><span class="t">'+DAYS[p.day]+" "+esc(p.time)+" · "+esc(p.subject)+' <span class="mute">('+p.min+' dk)</span></span><button class="btn ghost sm" data-dp="'+p.id+'" aria-label="Sil">Sil</button></li>'; }).join("")+'</ul>' : '<p class="mute">Henüz ders yok. Yukarıdan ilk dersini ekle.</p>')+'</div>';
+  document.getElementById("pa").onclick = function(){
+    var s = document.getElementById("ps").value.trim(), mi = +document.getElementById("pm").value; if(!s || !(mi>0)) return;
+    D.prog.push({id:uid(), day:+document.getElementById("pd").value, time:document.getElementById("pt").value||"00:00", subject:s, min:mi, done:false}); save(); render();
+  };
+  v.querySelectorAll("[data-dp]").forEach(function(b){ b.onclick = function(){ D.prog = D.prog.filter(function(p){ return p.id!==b.dataset.dp; }); save(); render(); }; });
+}
+
+/* ---------- Kronometre / Zamanlayıcı ---------- */
+function timerView(m){
+  var L = lv(P.grade), pl = ["","","",""];
+  m.innerHTML = '<div class="card"><div class="tabs2"><button class="btn ghost sm" data-m="sw" aria-pressed="'+(T.mode==="sw")+'">Kronometre</button><button class="btn ghost sm" data-m="cd" aria-pressed="'+(T.mode==="cd")+'">Geri sayım</button></div>'+
+   '<div class="clock" id="clock" role="timer">'+fmt(T.mode==="cd"?(T.target-T.acc)/1000:T.acc/1000)+'</div>'+
+   (T.mode==="cd"? '<div class="row" style="justify-content:center;margin-bottom:10px">'+L.pomos.map(function(p,i){ return '<button class="btn ghost sm" data-p="'+p+'">'+p+' dk'+(i===3?" mola":"")+'</button>'; }).join("")+'<input type="number" id="cm" min="1" max="240" placeholder="dk" style="width:80px" aria-label="Özel süre (dk)"></div>':'')+
+   '<div class="row" style="justify-content:center"><button class="btn" id="tgo">'+(T.run?"Duraklat":(T.acc?"Devam et":"Başlat"))+'</button><button class="btn ghost" id="trs">Sıfırla</button></div>'+
+   '<p class="mute" id="tmsg" style="text-align:center;margin-top:10px">Bugün toplam: <b id="todaySt">'+hm((D.log[today()]||0)/60)+'</b></p></div>';
+  m.querySelectorAll("[data-m]").forEach(function(b){ b.onclick = function(){ if(T.run) stopTimer(); T.mode = b.dataset.m; T.acc = 0; render(); }; });
+  m.querySelectorAll("[data-p]").forEach(function(b){ b.onclick = function(){ stopTimer(); T.target = +b.dataset.p*60000; T.acc = 0; render(); }; });
+  var cm = document.getElementById("cm"); if(cm) cm.onchange = function(){ if(+cm.value>0){ stopTimer(); T.target = +cm.value*60000; T.acc = 0; render(); } };
+  document.getElementById("tgo").onclick = function(){ if(T.run) stopTimer(); else { document.getElementById("tmsg").textContent = ""; startTimer(); } };
+  document.getElementById("trs").onclick = resetTimer;
+}
+
+/* ---------- Kaynaklar + sınıfa özel soru ---------- */
+var QZ = { items:[], ans:{}, busy:false };
+function resView(m){
+  m.innerHTML = '<div class="tabs2">'+[["kay","Kaynaklar"],["soru","Soru çöz"],["ornek","Örnek sorular"],["arsiv","MEB/Çıkmış arşiv"]].map(function(x){ return '<button class="btn ghost sm" data-r="'+x[0]+'" aria-pressed="'+(rsub===x[0])+'">'+x[1]+'</button>'; }).join("")+'</div><div id="rv"></div>';
+  m.querySelectorAll("[data-r]").forEach(function(b){ b.onclick = function(){ rsub = b.dataset.r; render(); }; });
+  if(rsub==="kay") linksView(document.getElementById("rv")); else if(rsub==="soru") quizView(document.getElementById("rv")); else if(rsub==="ornek") sampleView(document.getElementById("rv")); else archiveView(document.getElementById("rv"));
+}
+function linksView(v){
+  var g = P.grade, R = [
+   ["Konu anlatımı","Ders ve sınıf seçerek ücretsiz konu anlatımı, test ve etkinliklere ulaş.","EBA/MEB ders içerikleri","https://ders.eba.gov.tr/"],
+   ["MEB kaynak rehberi","MEB’in sınıf ve ders bazlı kitap, kazanım ve örnek soru kaynaklarını aç.","MEB ÖDSGM resmî kaynakları","https://odsgm.meb.gov.tr/"],
+   ["Yanlış defteri","Çözemediğin sorunun konusunu kaydet; aynı konu için resmî testleri tekrar çöz.","EBA ücretsiz test ve içerikler","https://ders.eba.gov.tr/"],
+   ["Sınav hazırlığı","LGS, YKS ve okul sınavlarına göre sınıfına uygun deneme ve konu çalışması bul.","MEBİ ücretsiz sınav hazırlığı","https://mebi.eba.gov.tr/"],
+   ["Güvenilir kaynak kullanımı","Resmî MEB/ÖSYM duyuru ve soru arşivlerini kullan; kopya veya doğrulanmamış içeriklere dikkat et.","MEB resmî duyurular","https://www.meb.gov.tr/"]
+  ];
+  v.innerHTML = '<div class="card"><h2>'+g+'. sınıf ücretsiz ve resmî kaynaklar</h2><p class="note">Her seçenekte sınıfına göre kullanabileceğin MEB destekli veya resmî kaynak bağlantısı bulunur. Bağlantı yeni sekmede açılır; uygulama kapanmaz.</p><input id="fq" placeholder="Kaynak ara" aria-label="Kaynak ara" style="margin:10px 0"><div id="rl"></div><div id="resourceDetail" style="margin-top:10px"></div></div>';
+  function draw(){ var q = document.getElementById("fq").value.toLocaleLowerCase("tr"); document.getElementById("rl").innerHTML = R.filter(function(r){ return (r[0]+r[1]+r[2]).toLocaleLowerCase("tr").indexOf(q)>-1; }).map(function(r){ return '<button class="res" data-resource="'+esc(r[0])+'"><b>'+esc(r[0])+'</b><small>'+esc(r[1])+'</small></button>'; }).join("") || '<p class="mute">Sonuç yok.</p>'; document.querySelectorAll("[data-resource]").forEach(function(b){ b.onclick=function(){ var r=R.find(function(x){ return x[0]===b.dataset.resource; }); var d=document.getElementById("resourceDetail"); if(d) d.innerHTML='<div class="note"><b>'+esc(r[0])+'</b><br>'+esc(r[1])+'<br><span class="mute">'+esc(r[2])+'</span><br><a class="btn" href="'+r[3]+'" target="_blank" rel="noopener noreferrer">Resmî kaynağı aç</a></div>'; }; }); }
+  document.getElementById("fq").oninput = draw; draw();
+}
+var SAMPLE_Q = {
+  4:[["Türkçe","Bir metnin ana fikrini bulmak için önce neye bakılır?","Metnin vermek istediği temel düşünceye","En uzun kelimeye","Başlıktaki son harfe","Sadece noktalama işaretlerine",0]],
+  5:[["Matematik","3/4 ile 1/4 toplandığında sonuç kaç olur?","1/2","1","3/8","4/8",1]],
+  6:[["Fen Bilimleri","Dünya’nın kendi ekseni etrafında dönmesi neyi oluşturur?","Mevsimleri","Gece ve gündüzü","Ay tutulmasını","Gelgitleri",1]],
+  7:[["Sosyal Bilgiler","Demokrasinin temel unsurlarından biri hangisidir?","Katılım","Tek kişinin kararı","Sansür","Zorunlu göç",0]],
+  8:[["Matematik","Birinci dereceden denklem çözümünde amaç nedir?","Bilinmeyeni yalnız bırakmak","İşaretleri silmek","Sayıları yuvarlamak","Kesri büyütmek",0]],
+  9:[["Matematik","Doğrusal fonksiyonun grafiği genellikle nasıldır?","Çember","Doğru","Parabol","Nokta kümesi",1]],
+  10:[["Biyoloji","Hücrede kalıtsal bilgiyi taşıyan yapı hangisidir?","Ribozom","DNA","Mitokondri","Hücre zarı",1]],
+  11:[["Fizik","Bir cismin hızındaki değişime ne ad verilir?","Kuvvet","İvme","Enerji","Basınç",1]],
+  12:[["Türk Dili ve Edebiyatı","Bir düşünceyi kanıtlarla savunan anlatım biçimi hangisidir?","Öyküleyici","Tartışmacı","Betimleyici","Emredici",1]]
+};
+function sampleView(v){
+  var L=lv(P.grade);
+  v.innerHTML = '<div class="card"><h2>'+P.grade+'. sınıf örnek soru bankası</h2><p class="mute">Dersini, konunu ve soru sayısını seç. 5, 10, 20, 50 veya 100 özgün pratik soru açılır. MEB’in telifli soruları kopyalanmaz.</p><div class="row"><select id="sd" class="grow" aria-label="Ders">'+L.subj.map(function(s){return '<option>'+esc(s)+'</option>';}).join("")+'</select><select id="sk" class="grow" aria-label="Konu">'+topicList(L.subj[0]).map(function(s){return '<option>'+esc(s)+'</option>';}).join("")+'</select><select id="sc" aria-label="Soru sayısı"><option value="5">5 soru</option><option value="10">10 soru</option><option value="20">20 soru</option><option value="50">50 soru</option><option value="100">100 soru</option></select><button class="btn" id="sg">Soruları göster</button></div><p class="err" id="se"></p></div><div id="sampleQs"></div>';
+  document.getElementById("sd").onchange=function(){document.getElementById("sk").innerHTML=topicList(this.value).map(function(s){return '<option>'+esc(s)+'</option>';}).join("");};
+  document.getElementById("sg").onclick=function(){var d=document.getElementById("sd").value,k=document.getElementById("sk").value,n=+document.getElementById("sc").value,items=localQuestions(n,d,k);document.getElementById("se").textContent=n+" soru hazırlandı.";document.getElementById("sampleQs").innerHTML=items.map(function(q,i){return '<div class="card"><h3>'+(i+1)+'. '+esc(q.soru)+'</h3>'+q.secenekler.map(function(o,j){return '<button class="opt" data-sample="'+i+'" data-answer="'+j+'">'+ "ABCD"[j]+") "+esc(o)+'</button>';}).join("")+'<p class="mute" id="sampleExplain'+i+'"></p></div>';}).join("");v.querySelectorAll("[data-sample]").forEach(function(b){b.onclick=function(){var q=items[+b.dataset.sample],ok=+b.dataset.answer===q.dogru,box=document.getElementById("sampleExplain"+b.dataset.sample);b.classList.add(ok?"ok":"no");b.disabled=true;if(box)box.innerHTML=ok?"<b>Doğru.</b>":'<b>Yanlış.</b> Doğru cevap: <b>'+"ABCD"[q.dogru]+'.</b> '+esc(q.aciklama)+'<br><button class="btn ghost sm" data-sample-retry="'+b.dataset.sample+'">Tekrar çöz</button>';v.querySelectorAll("[data-sample-retry]").forEach(function(r){r.onclick=function(){sampleView(v);};});};});};
+}
+function archiveView(v){
+  var years=["2026","2025","2024","2023","2022","2021","2020","2019","2018"], sources=[["MEB örnek soruları","meb"],["MEB ders kitapları","kitap"],["ÖSYM çıkmış sorular","osym"]];
+  v.innerHTML='<div class="card"><h2>Resmî örnek ve çıkmış soru arşivi</h2><p class="note">Telifli sorular kopyalanmaz. Seçtiğin yıl, sınıf ve ders bilgisiyle ilgili resmî arama sonucu açılır; yanlış ana sayfaya gönderilmez.</p><div class="row"><select id="ay" class="grow" aria-label="Yıl">'+years.map(function(y){return '<option>'+y+'</option>';}).join("")+'</select><select id="as" class="grow" aria-label="Kaynak">'+sources.map(function(s){return '<option value="'+s[1]+'">'+esc(s[0])+'</option>';}).join("")+'</select><select id="ad" class="grow" aria-label="Ders">'+lv(P.grade).subj.map(function(s){return '<option>'+esc(s)+'</option>';}).join("")+'</select><button class="btn" id="ao">Seçime göre aç</button></div><div id="archiveInfo" style="margin-top:10px"></div></div>';
+  document.getElementById("ao").onclick=function(){ var y=document.getElementById("ay").value, source=document.getElementById("as").value, d=document.getElementById("ad").value, query=P.grade+". sınıf "+d+" "+y+" örnek sorular çıkmış sorular"; var base=source==="osym"?"https://www.google.com/search?q=site%3Aosym.gov.tr+":source==="kitap"?"https://www.google.com/search?q=site%3Akitap.eba.gov.tr+": "https://www.google.com/search?q=site%3Aodsgm.meb.gov.tr+"; var url=base+encodeURIComponent(query); document.getElementById("archiveInfo").innerHTML='<div class="note">'+esc(y)+" · "+esc(d)+'<br><a class="btn" href="'+url+'" target="_blank" rel="noopener noreferrer">Seçime göre resmî aramayı aç</a></div>'; };
+}
+var LOCAL_BANK = {
+  "Matematik":[
+    {soru:"48 sayısının 3/4'ü kaçtır?",secenekler:["12","24","36","42"],dogru:2,aciklama:"48 ÷ 4 = 12 ve 12 × 3 = 36."},
+    {soru:"2x + 6 = 18 denkleminde x kaçtır?",secenekler:["4","6","8","12"],dogru:1,aciklama:"Önce 6 çıkarılır: 2x = 12. İkiye bölünce x = 6 olur."},
+    {soru:"Bir üçgenin iç açılarının toplamı kaç derecedir?",secenekler:["90","180","270","360"],dogru:1,aciklama:"Her üçgenin iç açıları toplamı 180 derecedir."},
+    {soru:"0,25 kesir olarak hangisine eşittir?",secenekler:["1/2","1/3","1/4","3/4"],dogru:2,aciklama:"0,25 = 25/100 = 1/4."},
+    {soru:"5² + 3² işleminin sonucu kaçtır?",secenekler:["16","25","34","64"],dogru:2,aciklama:"5² = 25 ve 3² = 9; toplam 34'tür."}
+  ],
+  "Türkçe":[
+    {soru:"Bir paragrafın ana düşüncesi nedir?",secenekler:["Yardımcı ayrıntı","Metnin temel iletisi","Başlıktaki kelime","Yazarın adı"],dogru:1,aciklama:"Ana düşünce, metnin okuyucuya vermek istediği temel iletidir."},
+    {soru:"'Yüz' kelimesi hangi cümlede eş sesli kullanılmıştır?",secenekler:["Yüz lira verdi.","Yüzünü yıkadı.","Havuzda yüzdü.","Yüz sayfa okudu."],dogru:2,aciklama:"'Yüzmek' ve 'yüz' sayı/organ anlamları farklı kökenli eş sesli kullanımlardır."},
+    {soru:"Aşağıdakilerden hangisi neden-sonuç cümlesidir?",secenekler:["Ders çalışmak için kütüphaneye gitti.","Yağmur yağdığı için maç ertelendi.","Keşke bize gelse.","Yarın erken kalkacak."],dogru:1,aciklama:"'Yağmur yağdığı için' bölümü nedeni, 'maç ertelendi' sonucu bildirir."}
+  ],
+  "Fen Bilimleri":[
+    {soru:"Fotosentez için aşağıdakilerden hangisi gereklidir?",secenekler:["Güneş ışığı","Kum","Ses","Tuz"],dogru:0,aciklama:"Bitkiler fotosentezde ışık enerjisini kullanır."},
+    {soru:"Kuvvetin birimi hangisidir?",secenekler:["Joule","Newton","Watt","Pascal"],dogru:1,aciklama:"Kuvvetin SI birimi Newton'dur."},
+    {soru:"Maddenin katı hâlinde tanecikler nasıldır?",secenekler:["Çok uzak","Düzenli ve yakın","Hareketsiz tamamen","Yok"],dogru:1,aciklama:"Katılarda tanecikler birbirine yakın ve düzenli dizilidir."}
+  ],
+  "Sosyal Bilgiler":[
+    {soru:"Demokrasinin temel özelliklerinden biri hangisidir?",secenekler:["Katılım","Tek kişinin yönetimi","Sansür","Zorunlu düşünce"],dogru:0,aciklama:"Demokraside vatandaşların yönetime katılımı esastır."},
+    {soru:"Haritalarda küçültme oranını gösteren kavram hangisidir?",secenekler:["Lejant","Ölçek","Yön oku","Başlık"],dogru:1,aciklama:"Ölçek, gerçek uzunlukların haritada ne kadar küçültüldüğünü gösterir."}
+  ],
+  "Fizik":[
+    {soru:"Kuvvetin SI birimi hangisidir?",secenekler:["Newton","Joule","Watt","Volt"],dogru:0,aciklama:"Kuvvet Newton (N) ile ölçülür."},
+    {soru:"Bir cismin hızındaki değişime ne denir?",secenekler:["Basınç","İvme","Özkütle","Isı"],dogru:1,aciklama:"Hızın zamana göre değişimi ivmedir."}
+  ],
+  "Kimya":[
+    {soru:"Atomun negatif yüklü parçacığı hangisidir?",secenekler:["Proton","Nötron","Elektron","Çekirdek"],dogru:2,aciklama:"Elektronlar negatif yüklüdür."},
+    {soru:"pH değeri 7 olan çözelti nasıldır?",secenekler:["Asidik","Bazik","Nötr","Gaz"],dogru:2,aciklama:"pH 7 nötr çözeltiyi gösterir."}
+  ],
+  "Biyoloji":[
+    {soru:"Kalıtsal bilgiyi taşıyan molekül hangisidir?",secenekler:["DNA","Su","Glikoz","Mineral"],dogru:0,aciklama:"Kalıtsal bilgi DNA üzerinde taşınır."},
+    {soru:"Hücrenin enerji üretim merkezî hangisidir?",secenekler:["Ribozom","Mitokondri","Çekirdek","Koful"],dogru:1,aciklama:"Mitokondri hücresel solunumla kullanılabilir enerji üretir."}
+  ],
+  "Tarih":[
+    {soru:"Millî Mücadele'nin başlatıldığı şehir hangisidir?",secenekler:["Samsun","Bursa","Edirne","Antalya"],dogru:0,aciklama:"Mustafa Kemal 19 Mayıs 1919'da Samsun'a çıktı."}
+  ],
+  "Coğrafya":[
+    {soru:"Haritalarda yükseltiyi gösteren çizgilere ne denir?",secenekler:["İzohips","Paralel","Meridyen","Ekvator"],dogru:0,aciklama:"İzohipsler eş yükselti eğrileridir."}
+  ],
+  "Türk Dili ve Edebiyatı":[
+    {soru:"Bir düşünceyi kanıtlarla savunan anlatım biçimi hangisidir?",secenekler:["Öyküleyici","Tartışmacı","Betimleyici","Emredici"],dogru:1,aciklama:"Tartışmacı anlatımda bir görüş kanıtlarla savunulur."}
+  ]
+};
+function localQuestions(count, subject, topic){
+  var bank=LOCAL_BANK[subject]||LOCAL_BANK["Matematik"], out=[];
+  for(var i=0;i<count;i++){ var item=bank[i%bank.length]; out.push({soru:(i>=bank.length?("Tekrar "+(Math.floor(i/bank.length)+1)+": "):"")+item.soru+" ("+(topic||"genel tekrar")+")",secenekler:item.secenekler,dogru:item.dogru,aciklama:item.aciklama}); }
+  return out;
+}
+function quizView(v){
+  var L = lv(P.grade);
+  v.innerHTML = '<div class="card"><h2>Sınıfına özel soru çöz</h2><p class="mute">'+P.grade+'. sınıf düzeyinde, müfredata uygun özgün sorular üretilir. Bunlar MEB’in resmî soruları değildir ve hata içerebilir.</p><div class="row"><select id="qd" class="grow" aria-label="Ders">'+L.subj.map(function(s){ return '<option>'+esc(s)+'</option>'; }).join("")+'</select><select id="qk" class="grow" aria-label="Konu">'+topicList(L.subj[0]).map(function(s){ return '<option>'+esc(s)+'</option>'; }).join("")+'</select><select id="qc" aria-label="Soru sayısı"><option value="5">5 soru</option><option value="10">10 soru</option><option value="20">20 soru</option><option value="50">50 soru</option><option value="100">100 soru</option></select><button class="btn" id="qg">Soru üret</button></div><p class="err" id="qe"></p></div><div id="qs"></div>';
+  document.getElementById("qd").onchange=function(){ document.getElementById("qk").innerHTML=topicList(this.value).map(function(s){return '<option>'+esc(s)+'</option>';}).join(""); };
+  function paint(){
+    document.getElementById("qs").innerHTML = QZ.items.map(function(q,i){
+      var a = QZ.ans[i];
+      return '<div class="card"><h3>'+(i+1)+'. '+esc(q.soru)+'</h3>'+q.secenekler.map(function(o,j){ var c = a===undefined ? "" : j===q.dogru ? " ok" : j===a ? " no" : ""; return '<button class="opt'+c+'" data-q="'+i+'" data-o="'+j+'" '+(a!==undefined?"disabled":"")+'>'+"ABCD"[j]+") "+esc(o)+'</button>'; }).join("")+(a!==undefined?'<p class="mute" style="margin-top:8px"><b>'+(a===q.dogru?"Doğru.":"Yanlış. Doğru cevap: "+"ABCD"[q.dogru]+".")+'</b> '+esc(q.aciklama||"")+'</p>'+(a!==q.dogru?'<button class="btn ghost sm" data-retry="'+i+'">Tekrar çöz</button>':''):'')+'</div>';
+    }).join("");
+    document.querySelectorAll("#qs [data-q]").forEach(function(b){ b.onclick = function(){ QZ.ans[+b.dataset.q] = +b.dataset.o; paint(); }; });
+    document.querySelectorAll("#qs [data-retry]").forEach(function(b){ b.onclick = function(){ delete QZ.ans[+b.dataset.retry]; paint(); }; });
+  }
+  paint();
+  document.getElementById("qg").onclick = async function(){
+    var er = document.getElementById("qe"), btn = this, ders = document.getElementById("qd").value, konu = document.getElementById("qk").value.trim(), count = +document.getElementById("qc").value;
+    er.textContent = ""; btn.disabled = true; btn.textContent = "Hazırlanıyor…";
+    try {
+      var sample = typeof claude !== "undefined" ? await claude.use("sample") : null;
+      if(!sample){ QZ.items=localQuestions(count,ders,konu); QZ.ans={}; paint(); er.textContent="Hazır soru bankasından sorular gösterildi."; return; }
+      var r = await sample.json("Türkiye’de "+P.grade+". sınıf ("+lv(P.grade).ad+") öğrencisi için MEB müfredatına uygun, "+ders+" dersinden '"+konu+"' konusunda "+count+" özgün çoktan seçmeli soru üret. Sınıf düzeyine uygun dil ve zorluk kullan. Cevabı YALNIZCA şu biçimde bir JSON dizisi olarak ver: [{\"soru\":\"\",\"secenekler\":[\"\",\"\",\"\",\"\"],\"dogru\":0,\"aciklama\":\"\"}]. dogru, doğru seçeneğin 0-3 arası indeksidir.", {cache:false});
+      var arr = Array.isArray(r) ? r : (r && r.sorular) || [];
+      arr = arr.filter(function(q){ return q && q.soru && Array.isArray(q.secenekler) && q.secenekler.length===4 && q.dogru>=0 && q.dogru<4; });
+      if(!arr.length) { QZ.items=localQuestions(count,ders,konu); QZ.ans={}; paint(); er.textContent="Hazır soru bankasından sorular gösterildi."; return; }
+      QZ.items = arr; QZ.ans = {}; paint();
+    } catch(e){ er.textContent = e && e.code==="not_granted" ? "Soru üretmek için izin vermelisin." : "Sorular üretilemedi. Tekrar dene."; }
+    finally { btn.disabled = false; btn.textContent = "Soru üret"; }
+  };
+}
+
+/* ---------- Yaşam ve sağlık ---------- */
+function addMin(h,m,d){ var t = (h*60+m+d+1440*3)%1440; return String(Math.floor(t/60)).padStart(2,"0")+":"+String(t%60).padStart(2,"0"); }
+function lifeView(m){
+  var L = lv(P.grade);
+  m.innerHTML = '<div class="card"><h2>Uyku düzenleme</h2><p class="mute">'+P.grade+'. sınıf yaş grubu için genel öneri: '+L.sleep+' uyku. Uyku 90 dakikalık döngülerle ilerler.</p>'+
+   '<div class="row"><select id="sm" class="grow" aria-label="Hesap türü"><option value="w">Kalkış saatim belli</option><option value="b">Yatış saatim belli</option></select><input id="st" class="grow" type="time" value="07:00" aria-label="Saat"><button class="btn" id="sc">Hesapla</button></div><div id="so" style="margin-top:10px"></div></div>'+
+   '<div class="card"><h2>Spor rehberi</h2><ul><li><b>Ders arası (2-5 dk):</b> boyun ve omuz çevirme, ayağa kalkıp esneme.</li><li><b>20-20-20 kuralı:</b> her 20 dakikada 20 saniye, 6 metre uzağa bak.</li><li><b>Haftalık:</b> '+(P.grade<=8?"her gün en az 1 saat hareket: oyun, bisiklet, yürüyüş.":"en az 3 gün tempolu yürüyüş, koşu veya evde hafif egzersiz.")+'</li>'+(P.grade>=8?'<li><b>Sınav dönemi:</b> yorucu antrenman yerine kısa yürüyüş seç.</li>':'')+'</ul><p class="mute">Genel öneriler içerir; sağlık sorunun varsa doktoruna danış.</p></div>'+
+   '<div class="card"><h2>Sağlıklı beslenme rehberi</h2><ul><li>Kahvaltıyı atlama; yumurta, peynir, tam tahıl ve meyve iyi başlangıçtır.</li><li>Gün boyu su iç; susuzluk dikkati düşürür.</li><li>Çalışırken şekerli atıştırmalık yerine ceviz, badem, kuru meyve veya meyve tercih et.</li><li>Ağır yemekten hemen sonra zor konulara başlama.</li>'+(P.grade>=9?'<li>Kafeini geç saatte alma; uykunu bozar.</li>':'<li>Gazlı ve şekerli içecekleri azalt.</li>')+'</ul><p class="mute">Genel öneriler içerir; özel bir plan için diyetisyene danış.</p></div>'+
+   '<div class="card"><h2>Bugünün mobil planı</h2><div class="stats"><div class="stat"><b>10 dk</b><span class="mute">esneme veya yürüyüş</span></div><div class="stat"><b>6-8 bardak</b><span class="mute">gün içine yayılmış su</span></div><div class="stat"><b>1 mola</b><span class="mute">her çalışma bloğundan sonra</span></div></div><p class="mute">Bu genel bir öğrenci planıdır; sağlık veya beslenme sorunun varsa uzmana danış.</p></div>'+
+   '<div class="card"><h2>Adım sayar</h2><p class="mute">Bugünkü adımın: <b id="stepN">'+(D.steps[today()]||0)+'</b> / 6000</p><div class="bar"><i id="stepBar" style="width:'+Math.min(100,Math.round((D.steps[today()]||0)/6000*100))+'%"></i></div><div class="row" style="margin-top:10px"><button class="btn" id="stepStart">Mobil sensörü başlat</button><button class="btn ghost" id="stepAdd">+100 adım</button></div><p class="mute" id="stepMsg">Bilgisayarda manuel ekleme kullanılır; mobilde hareket sensörü izni gerekebilir.</p></div>'+
+   '<div class="card"><h2>Yaşam hatırlatıcıları</h2><p class="mute">Bildirimler yalnızca sen etkinleştirince kullanılır. Tarayıcı izin vermezse ekrandaki hatırlatıcılar yine çalışır.</p><div class="row"><button class="btn ghost sm" id="remWater" aria-pressed="'+!!D.reminders.water+'">Su hatırlatıcı</button><button class="btn ghost sm" id="remStretch" aria-pressed="'+!!D.reminders.stretch+'">Esneme molası</button><button class="btn ghost sm" id="remSleep" aria-pressed="'+!!D.reminders.sleep+'">Uyku hatırlatıcı</button></div><p id="remMsg" class="mute"></p></div>';
+  ["water","stretch","sleep"].forEach(function(kind){ var b=document.getElementById("rem"+kind.charAt(0).toUpperCase()+kind.slice(1)); b.onclick=async function(){ D.reminders[kind]=!D.reminders[kind]; if(D.reminders[kind] && "Notification" in window && Notification.permission==="default") await Notification.requestPermission(); b.setAttribute("aria-pressed",D.reminders[kind]); document.getElementById("remMsg").textContent=D.reminders[kind]?"Hatırlatıcı etkinleştirildi. Uygulama açıkken bildirim gösterilir.":"Hatırlatıcı kapatıldı."; save(); }; });
+  document.getElementById("stepAdd").onclick = function(){ D.steps[today()] = (D.steps[today()]||0)+100; save(); lifeView(m); };
+  document.getElementById("stepStart").onclick = async function(){
+    var msg=document.getElementById("stepMsg");
+    if(!window.DeviceMotionEvent){ msg.textContent="Bu cihaz hareket sensörünü desteklemiyor; +100 adım düğmesini kullan."; return; }
+    try {
+      if(typeof DeviceMotionEvent.requestPermission==="function" && await DeviceMotionEvent.requestPermission()!=="granted") throw new Error("permission");
+      var last=0; window.addEventListener("devicemotion",function(e){ var a=e.accelerationIncludingGravity||e.acceleration, n=Math.sqrt(Math.pow(a.x||0,2)+Math.pow(a.y||0,2)+Math.pow(a.z||0,2)); if(n>13 && Date.now()-last>450){ last=Date.now(); D.steps[today()] = (D.steps[today()]||0)+1; save(); var el=document.getElementById("stepN"), bar=document.getElementById("stepBar"); if(el) el.textContent=D.steps[today()]; if(bar) bar.style.width=Math.min(100,Math.round(D.steps[today()]/6000*100))+"%"; } });
+      msg.textContent="Adım sayar aktif. Telefonu üzerinde taşı.";
+    } catch(e){ msg.textContent="Sensör izni verilmedi; manuel eklemeyi kullan."; }
+  };
+  document.getElementById("sc").onclick = function(){
+    var t = document.getElementById("st").value.split(":"), h = +t[0], mi = +t[1], w = document.getElementById("sm").value==="w", out;
+    if(w) out = '<p>Şu saatlerde yatmayı dene:</p>'+L.cyc.map(function(c){ return '<div class="stat" style="margin-bottom:6px"><b>'+addMin(h,mi,-(c*90+15))+'</b><span class="mute">'+c+' döngü, '+(c*1.5)+' saat uyku</span></div>'; }).join("");
+    else out = '<p>Şu saatlerde kalkmayı dene:</p>'+L.cyc.slice().reverse().map(function(c){ return '<div class="stat" style="margin-bottom:6px"><b>'+addMin(h,mi,c*90+15)+'</b><span class="mute">'+c+' döngü, '+(c*1.5)+' saat uyku</span></div>'; }).join("");
+    document.getElementById("so").innerHTML = out+'<p class="mute">Uykuya dalma süresi için 15 dakika eklendi.</p>';
+  };
+}
+
+/* ---------- Ders videoları ---------- */
+function videoView(m){
+  var L=lv(P.grade), subject=L.subj[0], topics=topicList(subject), teachers=["Tüm öğretmenler","Tonguç Akademi","Hocalara Geldik","Benim Hocam","Khan Academy Türkçe","Şenol Hoca","Matematiğin Güler Yüzü"];
+  m.innerHTML='<div class="card"><h2>Ders videoları</h2><p class="mute">Ders, konu ve öğretmen seç; arama sonucu YouTube’da açılır. Uygulama sekmesi kapanmaz.</p><div class="row"><select id="vs" class="grow" aria-label="Ders">'+L.subj.map(function(s){return '<option>'+esc(s)+'</option>';}).join("")+'</select><select id="vt" class="grow" aria-label="Konu">'+topics.map(function(s){return '<option>'+esc(s)+'</option>';}).join("")+'</select><select id="vteacher" class="grow" aria-label="Öğretmen">'+teachers.map(function(s){return '<option>'+esc(s)+'</option>';}).join("")+'</select><input id="vq" class="grow" placeholder="Ek konu veya anahtar kelime"><button class="btn" id="vgo">YouTube’da ara</button></div><div id="vresult"></div></div>';
+  document.getElementById("vs").onchange=function(){ var t=document.getElementById("vt"); t.innerHTML=topicList(this.value).map(function(x){return '<option>'+esc(x)+'</option>';}).join(""); };
+  document.getElementById("vgo").onclick=function(){ var teacher=document.getElementById("vteacher").value, q=P.grade+". sınıf "+document.getElementById("vs").value+" "+document.getElementById("vt").value+" "+document.getElementById("vq").value+" konu anlatımı"; if(teacher!=="Tüm öğretmenler") q+=" "+teacher; var url="https://www.youtube.com/results?search_query="+encodeURIComponent(q); document.getElementById("vresult").innerHTML='<div class="card"><h3>Arama hazır</h3><p class="mute">'+esc(q)+'</p><a class="btn" href="'+url+'" target="_blank" rel="noopener noreferrer">YouTube’da sonuçları aç</a><p class="mute">YouTube yeni sekmede açılır; bu uygulama açık kalır.</p></div>'; };
+}
+function topicList(subject){
+  var map={"Türkçe":["Okuma ve anlama","Sözcükte anlam","Cümlede anlam","Dil bilgisi","Yazım ve noktalama"],"Matematik":["Doğal sayılar","Kesirler","Ondalık gösterim","Denklemler","Oran ve orantı","Geometri"],"Fen Bilimleri":["Madde ve değişim","Kuvvet ve hareket","Enerji","Canlılar ve yaşam","Dünya ve evren"],"Sosyal Bilgiler":["Birey ve toplum","Kültür ve miras","İnsanlar, yerler ve çevreler","Bilim, teknoloji ve toplum"],"İngilizce":["Kelime bilgisi","Günlük ifadeler","Zamanlar","Okuma ve dinleme"],"Fizik":["Hareket","Kuvvet","Enerji","Elektrik","Dalgalar"],"Kimya":["Atom","Periyodik sistem","Kimyasal türler","Karışımlar","Asit ve bazlar"],"Biyoloji":["Hücre","Kalıtım","Ekosistem","İnsan fizyolojisi"],"Tarih":["İlk Türk devletleri","Osmanlı tarihi","Millî Mücadele","Cumhuriyet tarihi"],"Coğrafya":["Harita bilgisi","İklim","Nüfus","Doğal sistemler"],"Türk Dili ve Edebiyatı":["Edebî türler","Şiir bilgisi","Söz sanatları","Dil bilgisi"]};
+  return map[subject]||["Konu anlatımı","Temel kavramlar","Örnekler","Tekrar"];
+}
+
+/* ---------- Koçluk ---------- */
+var coachChat = [];
+function offlineAssistantReply(text){
+  var t = (text||"").toLocaleLowerCase("tr");
+  if(t.indexOf("program")>-1 || t.indexOf("plan")>-1) return "Bugün için küçük bir plan yapalım: 25 dakika konu çalış, 5 dakika mola ver, sonra 10 soru çöz. Bitince yanlışlarını işaretle ve bana hangi konuda zorlandığını yaz.";
+  if(t.indexOf("üzgün")>-1 || t.indexOf("moral")>-1 || t.indexOf("dert")>-1 || t.indexOf("stres")>-1) return "Bunu yaşaman zor olmalı. Yalnız değilsin; önce bir dakika yavaşça nefes alalım. İstersen seni en çok yoran şeyi anlat, sonra birlikte tek bir küçük adım seçelim.";
+  if(t.indexOf("yemek")>-1 || t.indexOf("beslen")>-1 || t.indexOf("su")>-1) return "Dengeli bir gün için su içmeyi, bir protein kaynağını, sebze veya meyveyi ve tam tahıllı bir seçeneği gün içine yay. Özel bir sağlık durumun varsa aile hekimi veya diyetisyene danış.";
+  if(t.indexOf("uyku")>-1 || t.indexOf("yorgun")>-1) return "Bugün uyku saatini sabitlemeye çalış. Yatmadan 30 dakika önce ekranı bırak, ağır çalışmayı bitir ve yarın için sadece üç küçük görev yaz.";
+  if(t.indexOf("nasıl")>-1 || t.indexOf("yardım")>-1 || t.indexOf("çalış")>-1) return "Elbette. Dersini ve konunu yaz; sana sınıfına uygun kısa bir çalışma adımı hazırlayayım. Takıldığın yeri de arkadaşınla konuşur gibi anlatabilirsin.";
+  return "Seni dinliyorum. Ders, plan, motivasyon, uyku veya beslenme hakkında neye ihtiyacın var? Birlikte uygulanabilir küçük bir adım seçelim.";
+}
+function coachPlan(subject, minutes){
+  return [minutes+" dk "+subject+" konu tekrarı","5 dk mola ve su","20 dk seçtiğin konudan soru çözme","10 dk yanlışları inceleme","Yarın için 3 dakikalık kısa tekrar notu"];
+}
+function coachView(m){
+  var C = D.coach;
+  m.innerHTML = '<div class="card"><h2>Akıllı kişisel koç</h2><p class="mute">Ücretsiz ve cloud izni gerektirmeyen koç: seninle sohbet eder, çalışma programı çıkarır, yaşam ve beslenme için dengeli öneriler verir.</p>'+
+   '<p><label>Bu dönemki hedefin<input id="cg" maxlength="160" value="'+esc(C.goal)+'" placeholder="Örn. Matematikte kesirleri pekiştirmek"></label></p>'+
+   '<p><label>Bugünün odak adımı<input id="cf" maxlength="160" value="'+esc(C.focus)+'" placeholder="Örn. 20 soru çözmek"></label></p>'+
+   '<p><label>Haftalık değerlendirme<textarea id="cr" rows="3" maxlength="500" placeholder="Neyi iyi yaptım, neyi değiştireceğim?">'+esc(C.reflection)+'</textarea></label></p>'+
+   '<div class="row"><button class="btn" id="cs">Notu kaydet</button><button class="btn ghost" id="cp">Bugünkü programı hazırla</button></div><p class="err" id="ce"></p></div>'+
+   '<div class="card"><h3>Koçla sohbet et</h3><div class="chat" id="coachChat" aria-live="polite"></div><div class="row"><textarea id="coachInput" class="grow" rows="2" placeholder="Bugün nasılsın, neye ihtiyacın var?" aria-label="Koça mesaj"></textarea><button class="btn" id="coachSend">Gönder</button><button class="btn ghost" id="coachMic">🎙️</button></div><p class="mute" id="coachVoice">Sesli konuşma hazır.</p></div>'+
+   '<div class="card"><h3>Çalışma programı</h3><div id="coachPlan"><p class="mute">Hedefini yazıp “Bugünkü programı hazırla” düğmesine bas.</p></div></div>'+
+   '<div class="card"><h3>Dengeli yaşam ve beslenme planı</h3><p class="mute">Genel öğrenci önerisidir; tıbbi diyet değildir.</p><div class="row"><select id="lifeFocus" class="grow" aria-label="Yaşam odağı"><option value="denge">Dengeli gün</option><option value="enerji">Enerji ve hareket</option><option value="uyku">Uyku düzeni</option></select><button class="btn" id="lifePlan">Plan hazırla</button></div><div id="lifePlanOut"></div></div>';
+  document.getElementById("cs").onclick = function(){
+    C.goal = document.getElementById("cg").value.trim(); C.focus = document.getElementById("cf").value.trim(); C.reflection = document.getElementById("cr").value.trim(); save();
+    document.getElementById("ce").textContent = "Koçluk notun kaydedildi.";
+  };
+  function drawChat(){ document.getElementById("coachChat").innerHTML=coachChat.length?coachChat.map(function(x){return '<div class="msg '+(x.role==="user"?"u":"a")+'">'+esc(x.text)+'</div>';}).join(""):'<p class="mute">Merhaba, ben buradayım. Bana nasıl hissettiğini veya neye ihtiyacın olduğunu yaz.</p>'; }
+  function sendCoach(){var q=document.getElementById("coachInput"),text=q.value.trim();if(!text)return;q.value="";coachChat.push({role:"user",text:text});coachChat.push({role:"assistant",text:offlineAssistantReply(text)});drawChat();var last=coachChat[coachChat.length-1].text;if(window.speechSynthesis)window.speechSynthesis.speak(new SpeechSynthesisUtterance(last));}
+  drawChat();
+  document.getElementById("coachSend").onclick=sendCoach;
+  document.getElementById("coachInput").onkeydown=function(e){if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();sendCoach();}};
+  document.getElementById("coachMic").onclick=function(){var S=window.SpeechRecognition||window.webkitSpeechRecognition;if(!S){document.getElementById("coachVoice").textContent="Bu tarayıcı ses tanımayı desteklemiyor.";return;}var r=new S();r.lang="tr-TR";document.getElementById("coachVoice").textContent="Dinliyorum…";r.onresult=function(e){document.getElementById("coachInput").value=e.results[0][0].transcript;document.getElementById("coachVoice").textContent="Mesaj hazır.";sendCoach();};r.onerror=function(){document.getElementById("coachVoice").textContent="Mikrofon izni verilmedi.";};r.start();};
+  document.getElementById("cp").onclick=function(){var p=coachPlan(C.focus||"seçtiğin ders",25);document.getElementById("coachPlan").innerHTML="<ol>"+p.map(function(x){return "<li>"+esc(x)+"</li>";}).join("")+"</ol>";};
+  document.getElementById("lifePlan").onclick=function(){var x=document.getElementById("lifeFocus").value, a=x==="uyku"?["Her gün benzer saatte yat ve kalk.","Yatmadan 30 dk önce ekranı bırak.","Akşam ağır kafeinli içeceklerden kaçın."]:x==="enerji"?["Gün içine 20-30 dk yürüyüş ekle.","Her çalışma bloğunda su iç.","Öğün atlamak yerine dengeli ara öğün seç."]:["Kahvaltı veya ilk öğünde protein ekle.","Sebze/meyve, tam tahıl ve suyu gün içine yay.","Ders arasında kısa hareket molası ver."];document.getElementById("lifePlanOut").innerHTML="<ul>"+a.map(function(y){return "<li>"+y+"</li>";}).join("")+"</ul>";};
+}
+
+function profileView(m){
+  m.innerHTML = '<div class="card"><h2>Hesabım</h2><div class="stats"><div class="stat"><b>'+esc(P.name)+'</b><span class="mute">Ad soyad</span></div><div class="stat"><b>'+esc(P.contact||"—")+'</b><span class="mute">E-posta / telefon</span></div><div class="stat"><b>'+P.grade+'. sınıf</b><span class="mute">Sınıf</span></div></div></div>'+
+   '<div class="card"><h2>Başarı ve ödüller</h2><div class="stats"><div class="stat"><b>'+((D&&D.points)||0)+'</b><span class="mute">puan</span></div><div class="stat"><b>'+((D&&D.badges)||[]).length+'</b><span class="mute">rozet</span></div></div><p class="mute">'+(((D&&D.badges)||[]).join(" · ")||"İlk günlük görevi tamamlayınca rozet kazanmaya başlarsın.")+'</p></div>'+
+   '<div class="card"><h2>Destek ve iletişim</h2><p class="mute">Uygulamayla ilgili sorun, öneri veya şikâyetini bize iletebilirsin.</p><a class="btn" href="mailto:'+SUPPORT_EMAIL+'?subject=Ders%20%C3%87al%C4%B1%C5%9Fma%20Uygulamas%C4%B1%20Deste%C4%9Fi">Destek e-postası gönder</a><p class="mute" style="margin-top:8px">'+SUPPORT_EMAIL+'</p></div>'+
+   '<div class="card"><h3>Hesap güvenliği</h3><p class="mute">Parolan düz metin olarak saklanmaz. E-posta veya telefon doğrulamanı tamamla; parolanı kimseyle paylaşma.</p><button class="btn ghost" id="pout">Güvenli çıkış yap</button></div>';
+  document.getElementById("pout").onclick = logout;
+}
+
+/* ---------- Güvenlik ve gizlilik ---------- */
+function securityView(m){
+  m.innerHTML = '<div class="card"><h2>Güvenlik ve gizlilik</h2><p class="mute">Parolan düz metin olarak saklanmaz; SHA-256 ile özetlenir. Verilerin '+(DB?"hesabına bağlı özel veritabanında":"bu tarayıcıdaki yerel depolamada")+' tutuluyor.</p>'+
+   '<div class="stat"><b>'+ (DB?"Hesaba bağlı":"Cihazla sınırlı") +'</b><span class="mute">Veri saklama durumu</span></div>'+
+   '<p class="note"><b>Güvenli kullanım:</b> Parolanı paylaşma, ortak cihazlarda işin bitince çıkış yap ve tarayıcı izinlerini yalnızca ihtiyaç olduğunda ver.</p>'+
+   '<div class="row"><button class="btn" id="sl">Şimdi güvenli çıkış yap</button><button class="btn ghost" id="sd">Bu hesabın verilerini sil</button></div><p class="err" id="se"></p></div>'+
+   '<div class="card"><h3>Ses ve kamera izinleri</h3><p class="mute">Sesli asistan ve kamera yalnızca ilgili düğmeye bastığında tarayıcı izni ister. Kamera görüntüsü sunucuya gönderilmez; kapatınca akış durdurulur.</p></div>'+
+   '<div class="card"><h3>Destek ve şikâyet</h3><p class="mute">Güvenlik veya kullanım sorunlarını şu adrese bildir:</p><a href="mailto:'+SUPPORT_EMAIL+'?subject=Uygulama%20deste%C4%9Fi">'+SUPPORT_EMAIL+'</a></div>';
+  document.getElementById("sl").onclick = logout;
+  document.getElementById("sd").onclick = async function(){
+    var er = document.getElementById("se");
+    if(!confirm("Bu hesaba ait plan, görev ve ilerleme verileri silinsin mi?")) return;
+    await sSet(P.key, null); lsDel("dca_session"); P = D = user = null; er.textContent = ""; loginView();
+  };
+}
+
+/* ---------- Ders Asistanı ---------- */
+var chat = [], aiMode = "metin", cameraStream = null;
+function aiView(m){
+  var L = lv(P.grade);
+  m.innerHTML = '<div class="card"><h2>Ders Asistanı</h2><p class="mute">'+P.grade+'. sınıf düzeyinde metin, ses ve görüntü desteği. Sesli ve görüntülü araçlar ayrı çalışır.</p>'+
+   '<div class="tabs2"><button class="btn ghost sm" data-ai="metin" aria-pressed="'+(aiMode==="metin")+'">Yazılı sohbet</button><button class="btn ghost sm" data-ai="ses" aria-pressed="'+(aiMode==="ses")+'">Sesli konuşma</button><button class="btn ghost sm" data-ai="goruntu" aria-pressed="'+(aiMode==="goruntu")+'">Kamera / görüntü</button></div>'+
+   '<div id="aiPanel"></div><p class="err" id="aerr"></p></div>';
+  m.querySelectorAll("[data-ai]").forEach(function(b){ b.onclick = function(){ aiMode = b.dataset.ai; render(); }; });
+  if(aiMode==="ses"){ voicePanel(document.getElementById("aiPanel")); return; }
+  if(aiMode==="goruntu"){ imagePanel(document.getElementById("aiPanel")); return; }
+  document.getElementById("aiPanel").innerHTML = '<div class="chat" id="ch" aria-live="polite"></div>'+
+   '<div class="sug">'+["Uygulama nasıl kullanılır?","Bugün ne yapmalıyım?","Kısa bir motivasyon sözü söyle","Ders çalışma molası öner"].map(function(s){ return '<button class="btn ghost sm" data-sg="'+esc(s)+'">'+esc(s)+'</button>'; }).join("")+'</div>'+
+   '<div class="row"><textarea id="q" rows="2" class="grow" placeholder="Sorunu yaz" aria-label="Sorun"></textarea><button class="btn" id="send">Gönder</button></div>';
+  var ch = document.getElementById("ch");
+  function paint(){ ch.innerHTML = chat.length ? chat.map(function(c){ return '<div class="msg '+(c.role==="user"?"u":"a")+'">'+(c.role==="user"?esc(c.content):md(c.content||"…"))+'</div>'; }).join("") : '<p class="mute">Merhaba! Ne çalışmak istersin?</p>'; ch.scrollTop = ch.scrollHeight; }
+  paint();
+  async function send(text){
+    var q = document.getElementById("q"), er = document.getElementById("aerr"); text = (text || q.value).trim(); if(!text) return;
+    er.textContent = ""; q.value = ""; chat.push({role:"user", content:text});
+    var msgs = chat.slice(-10).map(function(c){ return {role:c.role, content:c.content}; }); if(msgs[0].role!=="user") msgs.shift();
+    msgs[0] = {role:"user", content:"Sen “Ders Asistanı” adlı kısa ve sıcak bir Türkçe arkadaş asistanısın. Karşındaki öğrenci Türkiye’de "+P.grade+". sınıfta ("+L.ad+"). Yalnızca uygulamanın kullanımı, günlük çalışma düzeni, motivasyon, mola, spor ve dengeli beslenme hakkında kısa cevaplar ver. Ders sorusu çözme, ödev yapma, uzun konu anlatımı veya derin analiz yapma; kullanıcı ders sorusu sorarsa Kaynaklar > Örnek sorular bölümüne yönlendir. En fazla 3 kısa cümle yaz, samimi ol ve tıbbi konularda doktora yönlendir.\n\n"+msgs[0].content};
+    var reply = {role:"assistant", content:""}; chat.push(reply); paint();
+    try {
+      var sample = typeof claude !== "undefined" ? await claude.use("sample") : null;
+      if(!sample){ reply.content = offlineAssistantReply(text); paint(); return; }
+      var r = await sample(msgs, { cache:false, onText:function(x){ reply.content = x.text; paint(); } });
+      reply.content = r.text; paint();
+    } catch(e){
+      chat.pop(); paint();
+      er.textContent = e && e.code==="not_granted" ? "Asistanı kullanmak için izin vermelisin." : e && e.code==="rate_limited" ? "Çok fazla istek gönderildi. Biraz bekleyip tekrar dene." : "Yanıt alınamadı. Tekrar dene.";
+    }
+  }
+  document.getElementById("send").onclick = function(){ send(); };
+  document.getElementById("q").onkeydown = function(e){ if(e.key==="Enter" && !e.shiftKey){ e.preventDefault(); send(); } };
+  m.querySelectorAll("[data-sg]").forEach(function(b){ b.onclick = function(){ send(b.dataset.sg); }; });
+}
+
+function voicePanel(v){
+  var Speech = window.SpeechRecognition || window.webkitSpeechRecognition;
+  v.innerHTML = '<div class="media-box"><p>Konuşmak için mikrofon düğmesine bas. Metin, yalnızca sen gönderdiğinde asistana iletilir.</p><button class="btn" id="mic" '+(Speech?"":"disabled")+'>🎙️ Dinlemeyi başlat</button><p id="vt" class="mute">Hazır</p><textarea id="vq" rows="3" placeholder="İstersen konuşma metnini burada düzenle" aria-label="Sesli soru"></textarea><button class="btn" id="vs">Asistana gönder</button></div>';
+  var mic = document.getElementById("mic"), out = document.getElementById("vt"), q = document.getElementById("vq");
+  if(!Speech) out.textContent = "Bu tarayıcı ses tanımayı desteklemiyor; metin alanını kullanabilirsin.";
+  if(Speech) mic.onclick = function(){
+    var r = new Speech(); r.lang = "tr-TR"; r.interimResults = false;
+    out.textContent = "Dinleniyor…"; r.onresult = function(e){ q.value = e.results[0][0].transcript; out.textContent = "Metin alındı."; };
+    r.onerror = function(){ out.textContent = "Mikrofon kullanılamadı; izinleri kontrol et."; }; r.onend = function(){ if(out.textContent==="Dinleniyor…") out.textContent = "Dinleme bitti."; }; r.start();
+  };
+  document.getElementById("vs").onclick = async function(){
+    var text = q.value.trim(), er = document.getElementById("aerr"), b = this; if(!text) return;
+    b.disabled = true; er.textContent = "";
+    try {
+      var sample = typeof claude !== "undefined" ? await claude.use("sample") : null; if(!sample) throw new Error("unavailable");
+      var r = await sample([{role:"user",content:"Sen "+P.grade+". sınıf öğrencisine koçluk yapan Türkçe ders asistanısın. Kısa, yaşa uygun ve adım adım yanıt ver: "+text}],{cache:false});
+      if(window.speechSynthesis) window.speechSynthesis.speak(new SpeechSynthesisUtterance(r.text));
+      out.textContent = r.text;
+    } catch(e){ er.textContent = "Sesli yanıt alınamadı. Yazılı sohbeti deneyebilirsin."; }
+    finally { b.disabled = false; }
+  };
+}
+
+function imagePanel(v){
+  v.innerHTML = '<div class="media-box"><p>Bir sorunun fotoğrafını seç veya kamerayı aç. Görüntü önizlenir; inceleme düğmesine basmadan asistana iletilmez.</p><input id="im" type="file" accept="image/*" aria-label="Görüntü seç"><button class="btn ghost" id="cam">Kamerayı aç</button><button class="btn ghost" id="snap" hidden>Kareyi yakala</button><video id="vid" autoplay playsinline hidden></video><canvas id="can" hidden></canvas><img id="prev" alt="Seçilen görüntü" hidden><p><input id="iq" placeholder="Bu görüntü hakkında ne sorayım?" maxlength="160" aria-label="Görüntü sorusu"></p><button class="btn" id="ia">Görüntüyü incele</button><p id="it" class="mute"></p></div>';
+  var input = document.getElementById("im"), img = document.getElementById("prev"), video = document.getElementById("vid"), snap = document.getElementById("snap"), canvas = document.getElementById("can"), status = document.getElementById("it"), imageData = "";
+  input.onchange = function(){ if(input.files[0]){ var reader = new FileReader(); reader.onload = function(){ imageData = reader.result; img.src = imageData; img.hidden = false; video.hidden = true; status.textContent = "Görüntü hazır."; }; reader.readAsDataURL(input.files[0]); } };
+  document.getElementById("cam").onclick = async function(){
+    try { cameraStream = await navigator.mediaDevices.getUserMedia({video:true}); video.srcObject = cameraStream; video.hidden = false; snap.hidden = false; img.hidden = true; status.textContent = "Kamera açık. Kareyi yakalayabilirsin."; }
+    catch(e){ status.textContent = "Kamera açılamadı; tarayıcı iznini kontrol et."; }
+  };
+  snap.onclick = function(){ if(!video.videoWidth) return; canvas.width = video.videoWidth; canvas.height = video.videoHeight; canvas.getContext("2d").drawImage(video,0,0); imageData = canvas.toDataURL("image/jpeg",.85); img.src = imageData; img.hidden = false; video.hidden = true; status.textContent = "Kare yakalandı."; };
+  document.getElementById("ia").onclick = async function(){
+    var er = document.getElementById("aerr"), question = document.getElementById("iq").value.trim() || "Bu soruyu adım adım açıklar mısın?";
+    if(!imageData){ er.textContent = "Önce bir görüntü seç veya kameradan kare yakala."; return; }
+    er.textContent = "Görüntü hazırlanıyor…";
+    try {
+      var sample = typeof claude !== "undefined" ? await claude.use("sample") : null; if(!sample) throw new Error("unavailable");
+      var comma = imageData.indexOf(","), media = comma>-1 ? imageData.slice(5,comma) : "image/jpeg", encoded = comma>-1 ? imageData.slice(comma+1) : imageData;
+      var r = await sample([{role:"user",content:[{type:"text",text:"Sen "+P.grade+". sınıf Türkçe ders koçusun. "+question},{type:"image",source:{type:"base64",media_type:media,data:encoded}}]}],{cache:false});
+      status.textContent = r.text; er.textContent = "";
+    } catch(e){ er.textContent = "Görüntü analizi bu ortamda kullanılamadı. Görseldeki soruyu yazılı asistana aktarabilirsin."; }
+  };
+}
+
+/* ---------- Manevi destek ---------- */
+function spiritView(m){
+  var i = dailyIdx()+sp, a = AYET[i%AYET.length], h = HADIS[(i*3+1)%HADIS.length], H = D.hatim, n = H.juz.length, pct = Math.round(n/30*100);
+  m.innerHTML = '<div class="card"><h2>Günün ayeti ve hadisi</h2><div class="quote"><p>“'+esc(a[0])+'”</p><span class="mute">'+esc(a[1])+' (meal)</span></div><div class="quote"><p>“'+esc(h[0])+'”</p><span class="mute">'+esc(h[1])+'</span></div><button class="btn ghost sm" id="nx">Başka göster</button><p class="mute" style="margin-top:8px">'+AYET.length+' ayet ve '+HADIS.length+' hadis arasından seçilir; her gün değişir.</p></div>'+
+   '<div class="card"><h2>Hatim takibi</h2><p class="mute">Okuduğun cüzleri işaretle. Tamamlanan hatim: <b>'+H.count+'</b></p><div class="bar" role="progressbar" aria-valuenow="'+pct+'" aria-valuemin="0" aria-valuemax="100" style="margin:8px 0 12px"><i style="width:'+pct+'%"></i></div>'+
+   '<div class="grid30">'+Array.from({length:30},function(_,k){ var j = k+1; return '<button class="juz" data-j="'+j+'" aria-pressed="'+(H.juz.indexOf(j)>-1)+'" aria-label="'+j+'. cüz">'+j+'</button>'; }).join("")+'</div>'+
+   '<p class="mute" style="margin-top:10px">'+n+'/30 cüz okundu.</p>'+(n===30?'<p><b>Hatmin tamam oldu. Allah kabul etsin.</b></p>':'')+'<button class="btn ghost" id="nh" '+(n===30?'':'disabled')+'>Hatmi tamamla ve yenisine başla</button></div>';
+  document.getElementById("nx").onclick = function(){ sp++; render(); };
+  m.querySelectorAll("[data-j]").forEach(function(b){ b.onclick = function(){ var j = +b.dataset.j, x = H.juz.indexOf(j); if(x>-1) H.juz.splice(x,1); else H.juz.push(j); save(); render(); }; });
+  document.getElementById("nh").onclick = function(){ H.count++; H.juz = []; save(); render(); };
+}
+
+/* ---------- Başlangıç ---------- */
+(async function(){
+  await initStore();
+  if(location.hash==="#yonetici") loginMode = "admin";
+  var sid = lsGet("dca_session"), p = sid ? await sGet(sid) : null;
+  if(p && p.key===sid){ admin = sid.indexOf("admin_")===0; loginMode = admin ? "admin" : "student"; start(p); } else loginView();
+})();
+</script>
+</body>
+</html>
