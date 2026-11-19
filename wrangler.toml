@@ -9,7 +9,7 @@ database_id = "735e56ed-9b50-4a5f-943a-3c530ad35fdd"
 
 [vars]
 # Set this to the exact frontend origin(s), comma-separated. Use * only for local testing.
-APP_ORIGIN = "*"
+APP_ORIGIN = "https://ye939329-cloud.github.io"
 # Set a verified sender address for Resend; do not put the provider API key here.
 EMAIL_FROM = "Ders Çalışma <onboarding@resend.dev>"
 # Optional Twilio sender number; credentials belong in Wrangler secrets.
