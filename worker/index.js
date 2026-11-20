@@ -20,6 +20,10 @@ function normalizePhone(value) {
   return /^0\d{10}$/.test(phone) ? `+90${phone.slice(1)}` : phone;
 }
 
+function normalizeName(value) {
+  return String(value || "").trim().replace(/\s+/g, " ");
+}
+
 function validEmail(value) {
   return /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(value);
 }
@@ -292,18 +296,19 @@ async function findUser(env, contact) {
   return null;
 }
 
+async function findUsersByName(env, name) {
+  const result = await env.DB.prepare(
+    "SELECT * FROM users WHERE name = ? ORDER BY id DESC",
+  ).bind(normalizeName(name)).all();
+  return result.results || [];
+}
+
 async function register(request, env) {
   const body = await readJson(request);
-  const name = typeof body.name === "string" ? body.name.trim() : "";
+  const name = normalizeName(body.name);
   const contact = contactFrom(body);
-  if (!name || name.length > 120 || !contact || (!contact.email && !contact.phone) || !validPassword(body.password)) {
-    return json({ error: "Geçerli ad, e-posta/telefon ve güçlü parola gerekli." }, 400);
-  }
-  const types = [];
-  if (contact.email) types.push("email");
-  if (contact.phone) types.push("phone");
-  if (types.some((type) => !deliveryConfigured(env, type))) {
-    return json({ error: "Doğrulama gönderimi henüz yapılandırılmadı." }, 503);
+  if (!name || name.length > 120 || !contact || !validPassword(body.password)) {
+    return json({ error: "Geçerli ad ve güçlü parola gerekli. E-posta/telefon isteğe bağlıdır." }, 400);
   }
 
   const password = await passwordHash(body.password);
@@ -328,28 +333,28 @@ async function register(request, env) {
     throw error;
   }
 
-  const user = { id: insertedId, email: contact.email, phone: contact.phone };
-  try {
-    for (const type of types) await createChallenge(env, user, type, "verify");
-  } catch (error) {
-    console.error("Verification delivery failed");
-    return json({ error: error.status ? error.message : "Doğrulama kodu gönderilemedi." }, error.status || 503);
-  }
-  return json({ id: insertedId, verificationRequired: true }, 201);
+  return json({ id: insertedId, verificationRequired: false }, 201);
 }
 
 async function login(request, env) {
   const body = await readJson(request);
   const contact = contactFrom(body);
-  if (!contact || (!contact.email && !contact.phone) || typeof body.password !== "string") {
+  const name = normalizeName(body.name);
+  if (((!contact || (!contact.email && !contact.phone)) && !name) || typeof body.password !== "string") {
     return json({ error: "Giriş bilgileri hatalı." }, 401);
   }
-  const user = await findUser(env, contact);
-  if (!user || !(await verifyPassword(body.password, user.password_hash))) {
-    return json({ error: "Giriş bilgileri hatalı." }, 401);
+  const candidates = contact && (contact.email || contact.phone)
+    ? [await findUser(env, contact)]
+    : await findUsersByName(env, name);
+  let user = null;
+  for (const candidate of candidates) {
+    if (candidate && await verifyPassword(body.password, candidate.password_hash)) {
+      user = candidate;
+      break;
+    }
   }
-  if (user.role !== "admin" && !user.email_verified && !user.phone_verified) {
-    return json({ error: "Önce e-posta veya telefon doğrulamasını tamamla." }, 403);
+  if (!user) {
+    return json({ error: "Giriş bilgileri hatalı." }, 401);
   }
   return json({
     token: await createToken(env, user),
