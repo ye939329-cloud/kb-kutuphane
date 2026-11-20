@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Ders Çalışma Uygulaması</title>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
+  <link rel="manifest" href="manifest.json">
 <style>
 :root{--bg:#edf5f6;--card:rgba(255,255,255,.92);--ink:#12303a;--mute:#5d7480;--line:#d3e0e3;--pri:#0f5c6e;--pri-ink:#fff;--acc:#e8a317;--ok:#2e8b57;--bad:#c0392b;
 box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);color-scheme:light}
@@ -837,6 +838,11 @@ function spiritView(m){
   var sid = lsGet("dca_session"), p = sid ? await sGet(sid) : null;
   if(p && p.key===sid){ admin = sid.indexOf("admin_")===0; loginMode = admin ? "admin" : "student"; start(p); } else loginView();
 })();
+</script>
+  <script>
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js');
+  }
 </script>
 </body>
 </html>
