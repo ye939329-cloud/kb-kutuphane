@@ -844,5 +844,11 @@ function spiritView(m){
     navigator.serviceWorker.register('sw.js');
   }
 </script>
+  <script>
+setTimeout(() => {
+  const b = Array.from(document.querySelectorAll('button')).find(x => x.textContent.includes('Parolamı unuttum'));
+  if (b) b.insertAdjacentHTML('afterend', '<a href="indir.html" style="display:block;text-align:center;margin-top:12px;padding:12px;border-radius:12px;background:rgba(16,185,129,.18);color:#34d399;border:1px solid #34d399;text-decoration:none;font-weight:700">📲 Uygulamayı İndir / Telefona Kur</a>');
+}, 400);
+</script>
 </body>
 </html>
