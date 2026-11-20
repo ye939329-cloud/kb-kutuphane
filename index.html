@@ -148,7 +148,7 @@ function adminView(){
    '<div class="card"><h2>Hesap bilgisi</h2><div class="stats"><div class="stat"><b>Yönetici</b><span class="mute">Rol</span></div><div class="stat"><b>'+esc(P && P.contact || "—")+'</b><span class="mute">Giriş hesabı</span></div></div></div>'+
    '<div class="card"><h2>Kullanıcılar</h2><div id="adminUsers"><p class="mute">Yükleniyor…</p></div></div></main>';
   document.getElementById("adminOut").onclick = logout;
-  fetch("/api/admin/users",{headers:{Authorization:"Bearer "+(lsGet("dca_api_token")||"")}}).then(function(r){ return r.json(); }).then(function(data){ document.getElementById("adminUsers").innerHTML=(data.users||[]).map(function(u){ return '<div class="list"><div><b>'+esc(u.name)+'</b><br><span class="mute">'+esc(u.email||u.phone||"—")+' · '+esc(u.role)+'</span></div></div>'; }).join("")||'<p class="mute">Kullanıcı bulunamadı.</p>'; }).catch(function(){ document.getElementById("adminUsers").innerHTML='<p class="err">Kullanıcılar yüklenemedi.</p>'; });
+  fetch(API_BASE+"/api/admin/users",{headers:{Authorization:"Bearer "+(lsGet("dca_api_token")||"")}}).then(function(r){ return r.json(); }).then(function(data){ document.getElementById("adminUsers").innerHTML=(data.users||[]).map(function(u){ return '<div class="list"><div><b>'+esc(u.name)+'</b><br><span class="mute">'+esc(u.email||u.phone||"—")+' · '+esc(u.role)+'</span></div></div>'; }).join("")||'<p class="mute">Kullanıcı bulunamadı.</p>'; }).catch(function(){ document.getElementById("adminUsers").innerHTML='<p class="err">Kullanıcılar yüklenemedi.</p>'; });
 }
 async function sGet(key){
   if(DB){ try { var s = await DB.doc("data/users/"+VID+"/"+key).get(); return s.exists ? s.data() : null; } catch(e){} }
