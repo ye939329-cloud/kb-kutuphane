@@ -1,0 +1,16 @@
+{
+  "name": "KB Kütüphane - Dijital Koçluk",
+  "short_name": "KB Kütüphane",
+  "start_url": "/kb-kutuphane/index.html",
+  "display": "standalone",
+  "background_color": "#0f172a",
+  "theme_color": "#10b981",
+  "description": "Ücretsiz dijital koçluk, ders çalışma ve manevi destek uygulaması.",
+  "icons": [
+    {
+      "src": "https://flaticon.com",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
