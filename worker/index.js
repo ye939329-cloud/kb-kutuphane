@@ -491,14 +491,65 @@ async function resetPassword(request, env) {
 }
 
 async function adminUsers(request, env) {
-  const user = await authenticate(request, env);
-  if (!user) return json({ error: "Giriş gerekli." }, 401);
-  if (user.role !== "admin") return json({ error: "Yönetici yetkisi gerekli." }, 403);
+  const user = await authenticate(request, env, "admin");
+  if (!user) return json({ error: "Yönetici girişi gerekli." }, 401);
+  const search = String(new URL(request.url).searchParams.get("search") || "").trim();
+  const pattern = `%${search}%`;
   const result = await env.DB.prepare(
     `SELECT id, name, email, phone, role, email_verified, phone_verified, created_at
-     FROM users ORDER BY id DESC`,
-  ).all();
-  return json({ users: result.results || [] });
+     FROM users
+     WHERE (? = '' OR name LIKE ? OR email LIKE ? OR phone LIKE ?)
+     ORDER BY id DESC`,
+  ).bind(search, pattern, pattern, pattern).all();
+  const stats = await env.DB.prepare(
+    `SELECT COUNT(*) AS total,
+       SUM(CASE WHEN role = 'admin' THEN 1 ELSE 0 END) AS admins,
+       SUM(CASE WHEN role = 'student' THEN 1 ELSE 0 END) AS students
+     FROM users`,
+  ).first();
+  return json({ users: result.results || [], stats: stats || { total: 0, admins: 0, students: 0 } });
+}
+
+async function adminUpdateUser(request, env, userId) {
+  const admin = await authenticate(request, env, "admin");
+  if (!admin) return json({ error: "Yönetici girişi gerekli." }, 401);
+  const id = Number(userId);
+  if (!Number.isSafeInteger(id) || id < 1) return json({ error: "Kullanıcı kimliği geçersiz." }, 400);
+  const body = await readJson(request);
+  if (body.role !== "admin" && body.role !== "student") return json({ error: "Rol geçersiz." }, 400);
+  if (id === admin.id && body.role !== "admin") return json({ error: "Kendi yöneticilik rolünü kaldıramazsın." }, 400);
+  const result = await env.DB.prepare("UPDATE users SET role = ? WHERE id = ?").bind(body.role, id).run();
+  if (!result.meta || result.meta.changes !== 1) return json({ error: "Kullanıcı bulunamadı." }, 404);
+  return json({ updated: true });
+}
+
+async function adminDeleteUser(request, env, userId) {
+  const admin = await authenticate(request, env, "admin");
+  if (!admin) return json({ error: "Yönetici girişi gerekli." }, 401);
+  const id = Number(userId);
+  if (!Number.isSafeInteger(id) || id < 1) return json({ error: "Kullanıcı kimliği geçersiz." }, 400);
+  if (id === admin.id) return json({ error: "Kendi hesabını silemezsin." }, 400);
+  const result = await env.DB.prepare("DELETE FROM users WHERE id = ?").bind(id).run();
+  if (!result.meta || result.meta.changes !== 1) return json({ error: "Kullanıcı bulunamadı." }, 404);
+  return json({ deleted: true });
+}
+
+async function adminNotices(request, env) {
+  const admin = await authenticate(request, env, "admin");
+  if (!admin) return json({ error: "Yönetici girişi gerekli." }, 401);
+  if (request.method === "GET") {
+    const result = await env.DB.prepare(
+      "SELECT id, message, created_at FROM admin_notices ORDER BY id DESC LIMIT 20",
+    ).all();
+    return json({ notices: result.results || [] });
+  }
+  const body = await readJson(request);
+  const message = typeof body.message === "string" ? body.message.trim() : "";
+  if (!message || message.length > 1000) return json({ error: "Duyuru 1-1000 karakter olmalı." }, 400);
+  const result = await env.DB.prepare(
+    "INSERT INTO admin_notices (message, created_at, created_by) VALUES (?, ?, ?)",
+  ).bind(message, Date.now(), admin.id).run();
+  return json({ id: Number(result.meta && result.meta.last_row_id), created: true }, 201);
 }
 
 function addCors(response, request, env) {
@@ -506,7 +557,7 @@ function addCors(response, request, env) {
   const allowed = allowedOrigins(env);
   const headers = new Headers(response.headers);
   headers.set("Vary", "Origin");
-  headers.set("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+  headers.set("Access-Control-Allow-Methods", "GET, POST, PATCH, DELETE, OPTIONS");
   headers.set("Access-Control-Allow-Headers", "Content-Type, Authorization");
   headers.set("Access-Control-Max-Age", "86400");
   if (requestOrigin && (allowed.includes("*") || allowed.includes(requestOrigin))) {
@@ -541,6 +592,9 @@ export default {
       else if (request.method === "POST" && url.pathname === "/api/auth/forgot") response = await forgotPassword(request, env);
       else if (request.method === "POST" && url.pathname === "/api/auth/reset") response = await resetPassword(request, env);
       else if (request.method === "GET" && url.pathname === "/api/admin/users") response = await adminUsers(request, env);
+      else if (request.method === "PATCH" && /^\/api\/admin\/users\/\d+$/.test(url.pathname)) response = await adminUpdateUser(request, env, url.pathname.split("/").pop());
+      else if (request.method === "DELETE" && /^\/api\/admin\/users\/\d+$/.test(url.pathname)) response = await adminDeleteUser(request, env, url.pathname.split("/").pop());
+      else if ((request.method === "GET" || request.method === "POST") && url.pathname === "/api/admin/notices") response = await adminNotices(request, env);
       else response = json({ error: "Bulunamadı." }, 404);
       return addCors(response, request, env);
     } catch (error) {
