@@ -309,13 +309,14 @@ async function register(request, env) {
   const password = await passwordHash(body.password);
   let insertedId;
   try {
-    const inserted = await env.DB.prepare(
+    await env.DB.prepare(
       `INSERT INTO users (name, email, phone, password_hash, role, created_at)
        VALUES (?, ?, ?, ?, 'student', ?)`,
     ).bind(name, contact.email, contact.phone, password, Date.now()).run();
-    insertedId = Number(inserted.meta && inserted.meta.last_row_id);
-    if (!inserted.meta || inserted.meta.changes !== 1 || !Number.isSafeInteger(insertedId) || insertedId < 1) {
-      const error = new Error("D1_INSERT_DID_NOT_RETURN_ROW_ID");
+    const insertedUser = await findUser(env, contact);
+    insertedId = Number(insertedUser && insertedUser.id);
+    if (!Number.isSafeInteger(insertedId) || insertedId < 1) {
+      const error = new Error("D1_INSERTED_USER_NOT_FOUND");
       error.name = "D1InsertError";
       throw error;
     }
