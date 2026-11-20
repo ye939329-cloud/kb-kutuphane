@@ -223,7 +223,7 @@ function loginView(){
   '<div class="auth-switch">'+(isAdmin?'<a class="btn ghost sm" href="#" id="studentMode">Öğrenci girişine dön</a>':'<button class="btn ghost sm" id="loginModeBtn" aria-pressed="'+(!isRegister)+'">Giriş yap</button><button class="btn ghost sm" id="registerModeBtn" aria-pressed="'+isRegister+'">Hesap aç</button><a class="btn ghost sm" href="#yonetici" id="adminMode">Yönetici</a>')+'</div>'+
   (isAdmin ? '<p><input id="contact" placeholder="Yönetici e-posta veya telefon" autocomplete="username"></p>' :
   (isRegister?'<div class="row"><input id="ad" class="grow" placeholder="Ad" autocomplete="given-name"><input id="soyad" class="grow" placeholder="Soyad" autocomplete="family-name"></div>':'')+
-  '<p><input id="contact" placeholder="E-posta veya telefon" autocomplete="username"></p>'+
+  '<p><input id="contact" placeholder="'+(isRegister?"E-posta veya telefon (isteğe bağlı)":(isAdmin?"Yönetici e-posta veya telefon":"Ad soyad"))+'" autocomplete="username"></p>'+
   (isRegister?'<p><select id="gr" aria-label="Sınıf">'+[4,5,6,7,8,9,10,11,12].map(function(g){ return '<option value="'+g+'">'+g+'. sınıf</option>'; }).join("")+'</select></p>':'') )+
   '<p><input id="pin" type="password" placeholder="Güçlü parola" autocomplete="'+(isRegister?"new-password":"current-password")+'" minlength="8"></p><div class="password-meter" aria-hidden="true"><i id="pwBar"></i></div><p class="password-status" id="pwStatus" aria-live="polite"></p>'+
   (isRegister?'<div class="requirements"><b>Parola şartları</b><span id="rLen">○ En az 8 karakter</span><span id="rLow">○ Küçük harf</span><span id="rUp">○ Büyük harf</span><span id="rNum">○ Rakam</span><span id="rSpec">○ Özel karakter</span></div>':'')+
@@ -289,8 +289,9 @@ function verificationView(contact, password, name, grade){
   document.getElementById("back").onclick = loginView;
 }
 async function backendLogin(contact, password, name, grade){
-  var c = apiContact(contact), result;
-  result = await apiRequest("/auth/login", {email:c.email,phone:c.phone,password:password});
+  var value = contact.trim(), result;
+  var credentials = value.indexOf("@")>-1 || /^\+?\d/.test(normalizeContact(value)) ? apiContact(value) : {name:value};
+  result = await apiRequest("/auth/login", Object.assign({}, credentials, {password:password}));
   admin = result.user.role==="admin"; loginMode = admin ? "admin" : "student";
   lsSet("dca_api_token", result.token);
   var key = "api_"+result.user.id, local = await sGet(key);
@@ -302,11 +303,13 @@ async function doLogin(){
   var isRegister = loginMode==="student" && accountMode==="register";
   if(Date.now()<loginGuard.until){ err.textContent = "Çok fazla hatalı deneme. Birkaç dakika sonra tekrar dene."; return; }
   if(isRegister && (!document.getElementById("ad").value.trim() || !document.getElementById("soyad").value.trim())){ err.textContent = "Ad ve soyad gerekli."; return; }
-  if(!validContact(contact)){ err.textContent = "Geçerli bir e-posta veya telefon yaz."; return; }
+  if(isRegister && contact && !validContact(contact)){ err.textContent = "E-posta veya telefon boş bırakılabilir; yazarsan geçerli olmalı."; return; }
+  if(!isRegister && !contact){ err.textContent = loginMode==="admin" ? "Yönetici e-posta veya telefon gerekli." : "Ad soyad gerekli."; return; }
+  if(!isRegister && loginMode==="admin" && !validContact(contact)){ err.textContent = "Geçerli bir e-posta veya telefon yaz."; return; }
   if(!validPassword(pin)){ err.textContent = "Parola en az 8 karakter olmalı; büyük harf, küçük harf, rakam ve özel karakter içermeli."; return; }
   if(USE_API){
     try {
-      if(isRegister){ var c=apiContact(contact); await apiRequest("/auth/register",{name:document.getElementById("ad").value.trim()+" "+document.getElementById("soyad").value.trim(),email:c.email,phone:c.phone,password:pin}); verificationView(contact,pin,document.getElementById("ad").value.trim()+" "+document.getElementById("soyad").value.trim(),+document.getElementById("gr").value); }
+      if(isRegister){ var c=contact ? apiContact(contact) : {email:null,phone:null}; var accountName=document.getElementById("ad").value.trim()+" "+document.getElementById("soyad").value.trim(); await apiRequest("/auth/register",{name:accountName,email:c.email,phone:c.phone,password:pin}); await backendLogin(accountName,pin,accountName,+document.getElementById("gr").value); }
       else await backendLogin(contact,pin,loginMode==="admin"?"Yönetici":"",loginMode==="admin"?12:4);
     }
     catch(e){ err.textContent = e.message || "Sunucuya bağlanılamadı."; }
