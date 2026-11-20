@@ -303,6 +303,13 @@ async function findUsersByName(env, name) {
   return result.results || [];
 }
 
+async function findInsertedUser(env, contact, name, createdAt) {
+  if (contact.email || contact.phone) return findUser(env, contact);
+  return env.DB.prepare(
+    "SELECT * FROM users WHERE name = ? AND created_at = ? ORDER BY id DESC LIMIT 1",
+  ).bind(name, createdAt).first();
+}
+
 async function register(request, env) {
   const body = await readJson(request);
   const name = normalizeName(body.name);
@@ -312,13 +319,14 @@ async function register(request, env) {
   }
 
   const password = await passwordHash(body.password);
+  const createdAt = Date.now();
   let insertedId;
   try {
     await env.DB.prepare(
       `INSERT INTO users (name, email, phone, password_hash, role, created_at)
        VALUES (?, ?, ?, ?, 'student', ?)`,
-    ).bind(name, contact.email, contact.phone, password, Date.now()).run();
-    const insertedUser = await findUser(env, contact);
+    ).bind(name, contact.email, contact.phone, password, createdAt).run();
+    const insertedUser = await findInsertedUser(env, contact, name, createdAt);
     insertedId = Number(insertedUser && insertedUser.id);
     if (!Number.isSafeInteger(insertedId) || insertedId < 1) {
       const error = new Error("D1_INSERTED_USER_NOT_FOUND");
